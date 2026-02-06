@@ -1,0 +1,50 @@
+{
+  "name": "weather-proxy",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "set NODE_ENV=development && tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.prod.json && tsc-alias",
+    "prepare": "husky",
+    "lint": "eslint src --ext .ts,.js",
+    "lint:watch": "eslint src --ext .ts,.js --watch",
+    "lint:check": "eslint src --ext .ts,.js --format unix",
+    "lint:fix": "eslint src --ext .ts,.js --fix",
+    "lint:info": "eslint src --ext .ts,.js --max-warnings=0 --quiet",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "pm2:start": "pm2 start dist/server.js --name weather-proxy",
+    "pm2:stop": "pm2 stop weather-proxy",
+    "pm2:restart": "pm2 restart weather-proxy --update-env"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.3.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-cache": "^5.1.2",
+    "node-cron": "^4.2.1",
+    "prisma": "^7.3.0",
+    "xmlbuilder2": "^3.0.2"
+  },
+  "devDependencies": {
+    "@commitlint/config-conventional": "^20.4.1",
+    "@eslint/js": "^9.39.2",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "commitlint": "^20.4.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^9.1.7",
+    "prettier": "^3.8.1",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.6.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": "^24.11.0"
+  }
+}

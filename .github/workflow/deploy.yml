@@ -1,0 +1,57 @@
+# 工作流名称
+name: Auto Deploy weather_proxy Service
+
+# 触发条件：推送到 master/main 分支时触发（根据你的分支名调整）
+on:
+  push:
+    branches: [main]
+
+# 执行的任务
+jobs:
+  deploy:
+    # 运行环境（GitHub 提供的虚拟机）
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤1：检出 GitHub 仓库的代码（拉到虚拟机）
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # 步骤2：添加服务器到 SSH 信任列表（避免首次登录的指纹验证）
+      # - name: Add server to known_hosts
+      #   run: |
+      #     ssh-keyscan -p 168-H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      # 步骤2：配置 SSH 免密登录到远端服务器
+      - name: Setup SSH connection
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }} # 引用 GitHub Secrets 中的私钥
+
+      # 步骤3：远程登录服务器，执行部署命令（核心）
+      - name: Deploy to server
+        run: |
+          ssh -p 168 \
+          -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            export VOLTA_HOME="$HOME/.volta"
+            export PATH="$VOLTA_HOME/bin:$PATH"
+            cd $HOME/Sites/weather_proxy
+            git pull origin main
+            export HUSKY=0
+            npm install
+            # Prisma 数据库迁移
+            npx prisma generate
+            npx prisma migrate deploy
+            npm run build || exit 1
+            APP_NAME="${{ secrets.SERVER_PM2_NAME }}"
+            ENTRY_FILE="dist/server.js"
+
+            if pm2 describe "$APP_NAME" > /dev/null; then
+              pm2 reload "$APP_NAME" --update-env || pm2 restart "$APP_NAME" --update-env
+            else
+              pm2 start "$ENTRY_FILE" --name "$APP_NAME"
+            fi
+
+            echo "$(date +"%Y-%m-%d %H:%M:%S") - 服务部署并重启成功" >> $HOME/Sites/deploy.log
+          EOF
