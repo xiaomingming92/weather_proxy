@@ -53,5 +53,6 @@ jobs:
               pm2 start "$ENTRY_FILE" --name "$APP_NAME"
             fi
 
+            pm2 save
             echo "$(date +"%Y-%m-%d %H:%M:%S") - 服务部署并重启成功" >> $HOME/Sites/deploy.log
           EOF
