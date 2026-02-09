@@ -21,9 +21,24 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
 
 // 确定环境变量文件
-const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
-const envFilePath = path.resolve(projectRoot, envFile);
+import fs from 'fs';
 
+let envFile = '.env';
+const prodEnvPath = path.resolve(projectRoot, '.env.prod');
+const devEnvPath = path.resolve(projectRoot, '.env');
+
+// 优先检查 .env.prod 文件是否存在
+if (fs.existsSync(prodEnvPath)) {
+  envFile = '.env.prod';
+  console.log('[Config] Production environment detected, using .env.prod');
+} else if (fs.existsSync(devEnvPath)) {
+  console.log('[Config] Development environment detected, using .env');
+} else {
+  console.error('[Config] No environment file found!');
+  throw new Error('No environment file found (.env or .env.prod)');
+}
+
+const envFilePath = path.resolve(projectRoot, envFile);
 console.log(`[Config] Loading environment variables from: ${envFilePath}`);
 
 // 加载环境变量
