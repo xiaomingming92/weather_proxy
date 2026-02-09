@@ -9,8 +9,8 @@ interface City {
   id: number;
   name: string;
   cityId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: bigint;
+  updatedAt: bigint;
 }
 
 // 定义天气数据类型接口
@@ -19,8 +19,11 @@ interface WeatherData {
   cityId: string;
   dataType: string;
   xmlData: string;
-  createdAt: Date;
-  expiresAt: Date;
+  timestamp: bigint;
+  timezone: string;
+  expiresAt: bigint;
+  createdAt: bigint;
+  updatedAt: bigint;
 }
 
 // 定义缓存配置类型接口
@@ -29,8 +32,8 @@ interface CacheConfig {
   key: string;
   value: string;
   description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: bigint;
+  updatedAt: bigint;
 }
 
 class PrismaCacheService {
@@ -59,10 +62,16 @@ class PrismaCacheService {
 
   async createCity(name: string, cityId: string): Promise<City> {
     try {
+      const currentTimestamp = BigInt(Date.now());
       return await prisma.city.upsert({
         where: { name },
-        update: { cityId, updatedAt: new Date() },
-        create: { name, cityId },
+        update: { cityId, updatedAt: currentTimestamp },
+        create: {
+          name,
+          cityId,
+          createdAt: currentTimestamp,
+          updatedAt: currentTimestamp,
+        },
       });
     } catch (error) {
       console.error('Error creating city:', error);
@@ -80,9 +89,13 @@ class PrismaCacheService {
         where: { cityId_dataType: { cityId, dataType } },
       });
 
-      // 检查缓存是否过期
-      if (weatherData && weatherData.expiresAt > new Date()) {
-        return weatherData;
+      // 检查缓存是否过期（使用时间戳比较）
+      if (weatherData) {
+        const currentTimestamp = BigInt(Date.now());
+        const expiresAtBigInt = BigInt(weatherData.expiresAt);
+        if (expiresAtBigInt > currentTimestamp) {
+          return weatherData as WeatherData;
+        }
       }
 
       return null;
@@ -99,13 +112,29 @@ class PrismaCacheService {
     expiresInMinutes: number
   ): Promise<WeatherData> {
     try {
-      const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+      const timestamp = BigInt(Date.now());
+      const expiresAt = timestamp + BigInt(expiresInMinutes * 60 * 1000);
 
-      return await prisma.weatherData.upsert({
+      const weatherData = await prisma.weatherData.upsert({
         where: { cityId_dataType: { cityId, dataType } },
-        update: { xmlData, expiresAt },
-        create: { cityId, dataType, xmlData, expiresAt },
+        update: {
+          xmlData,
+          timestamp,
+          expiresAt,
+          updatedAt: timestamp,
+        },
+        create: {
+          cityId,
+          dataType,
+          xmlData,
+          timestamp,
+          expiresAt,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        },
       });
+
+      return weatherData as WeatherData;
     } catch (error) {
       console.error('Error creating or updating weather data:', error);
       throw error;
@@ -130,10 +159,17 @@ class PrismaCacheService {
     description?: string
   ): Promise<CacheConfig> {
     try {
+      const currentTimestamp = BigInt(Date.now());
       return await prisma.cacheConfig.upsert({
         where: { key },
-        update: { value, description, updatedAt: new Date() },
-        create: { key, value, description },
+        update: { value, description, updatedAt: currentTimestamp },
+        create: {
+          key,
+          value,
+          description,
+          createdAt: currentTimestamp,
+          updatedAt: currentTimestamp,
+        },
       });
     } catch (error) {
       console.error('Error setting cache config:', error);
@@ -189,9 +225,10 @@ class PrismaCacheService {
   // 清理过期缓存
   async cleanupExpiredCache(): Promise<void> {
     try {
+      const currentTimestamp = BigInt(Date.now());
       await prisma.weatherData.deleteMany({
         where: {
-          expiresAt: { lte: new Date() },
+          expiresAt: { lte: currentTimestamp },
         },
       });
       console.log('Expired cache cleaned up');
@@ -212,11 +249,12 @@ class PrismaCacheService {
   // 获取有预报缓存的城市列表
   async getCitiesWithForecastCache(): Promise<City[]> {
     try {
+      const currentTimestamp = BigInt(Date.now());
       // 查询有预报缓存的城市
       const weatherData = await prisma.weatherData.findMany({
         where: {
           dataType: 'ztewidgetcf',
-          expiresAt: { gt: new Date() },
+          expiresAt: { gt: currentTimestamp },
         },
         select: {
           cityId: true,

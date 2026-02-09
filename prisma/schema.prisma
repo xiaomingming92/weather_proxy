@@ -17,8 +17,8 @@ model City {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   cityId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt BigInt
+  updatedAt BigInt
   
   // 关联到天气数据
   weatherData WeatherData[]
@@ -29,8 +29,11 @@ model WeatherData {
   cityId       String
   dataType     String
   xmlData      String
-  createdAt    DateTime @default(now())
-  expiresAt    DateTime
+  timestamp    BigInt
+  timezone     String   @default("Asia/Shanghai")
+  expiresAt    BigInt
+  createdAt    BigInt
+  updatedAt    BigInt
   
   // 外键关联
   city         City?    @relation(fields: [cityId], references: [cityId])
@@ -44,6 +47,6 @@ model CacheConfig {
   key              String   @unique
   value            String
   description      String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        BigInt
+  updatedAt        BigInt
 }
