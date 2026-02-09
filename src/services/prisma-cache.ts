@@ -3,11 +3,10 @@
 
 import { PrismaClient } from '../generated/prisma/client.js';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
-import mariadb from 'mariadb/promise';
-import dotenv from 'dotenv';
+// import mariadb from 'mariadb/promise';
 
 // 加载环境变量
-dotenv.config();
+// dotenv.config();
 
 // 验证环境变量
 try {
