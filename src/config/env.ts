@@ -2,7 +2,7 @@
  * @Author       : Z2-WIN\xmm wujixmm@gmail.com
  * @Date         : 2026-02-09 14:31:08
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
- * @LastEditTime : 2026-02-09 14:33:08
+ * @LastEditTime : 2026-02-09 15:02:17
  * @FilePath     : \decompile\weather_proxy\src\config\env.ts
  * @Description  :
  */
@@ -70,6 +70,37 @@ export function validateEnvVariables() {
   console.log('[Config] All required environment variables are present');
 }
 
+// 计算私钥文件的绝对路径
+export function getPrivateKeyPath(): string {
+  const privateKeyPath = process.env.QWEATHER_JWT_PRIVATE_KEY_PATH;
+
+  if (!privateKeyPath) {
+    throw new Error(
+      'QWEATHER_JWT_PRIVATE_KEY_PATH environment variable is not set'
+    );
+  }
+
+  // 计算绝对路径
+  const privateKeyFullPath = path.resolve(projectRoot, privateKeyPath);
+
+  console.log('[Config] Private key path:', privateKeyFullPath);
+
+  // 验证文件存在性
+  if (!fs.existsSync(privateKeyFullPath)) {
+    throw new Error(`Private key file not found: ${privateKeyFullPath}`);
+  }
+
+  // 验证文件可读性
+  try {
+    fs.accessSync(privateKeyFullPath, fs.constants.R_OK);
+    console.log('[Config] Private key file is readable');
+  } catch (error) {
+    throw new Error(`Private key file is not readable: ${privateKeyFullPath}`);
+  }
+
+  return privateKeyFullPath;
+}
+
 // 导出环境变量访问器
 export const env = {
   get: (key: string, defaultValue?: string): string => {
@@ -84,6 +115,7 @@ export const env = {
     if (value === undefined) return defaultValue;
     return value.toLowerCase() === 'true';
   },
+  getPrivateKeyPath,
 };
 
 // 导出配置文件路径

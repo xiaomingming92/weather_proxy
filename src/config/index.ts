@@ -1,5 +1,5 @@
 // 导入环境变量配置
-import { env } from './env.js';
+import './env.js'; // 确保环境变量在使用前加载
 
 export const config = {
   env: process.env.NODE_ENV || 'development',

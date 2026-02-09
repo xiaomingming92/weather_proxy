@@ -2,6 +2,7 @@ import axios from 'axios';
 import { config } from '../config/index.js';
 import { SignJWT, importPKCS8 } from 'jose';
 import fs from 'fs';
+import { env } from '../config/env.js';
 import prismaCache from './prisma-cache.js';
 
 // 定义JWT配置接口
@@ -39,19 +40,14 @@ class WeatherApi {
     console.log('JWT Config:', this.jwtConfig);
 
     // 读取私钥文件
-    if (this.jwtConfig.privateKeyPath) {
-      try {
-        this.privateKey = fs.readFileSync(
-          this.jwtConfig.privateKeyPath,
-          'utf8'
-        );
-        console.log('Private key loaded successfully');
-      } catch (error) {
-        console.error('Failed to read private key file:', error);
-        throw new Error('Private key file not found or unreadable');
-      }
-    } else {
-      throw new Error('Private key path not configured');
+    try {
+      const privateKeyPath = env.getPrivateKeyPath();
+
+      this.privateKey = fs.readFileSync(privateKeyPath, 'utf8');
+      console.log('Private key loaded successfully');
+    } catch (error) {
+      console.error('Failed to read private key file:', error);
+      throw new Error('Private key file not found or unreadable');
     }
   }
 
