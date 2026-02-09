@@ -2,6 +2,25 @@
 // 支持实时查询和多天预警缓存策略
 
 import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import mariadb from 'mariadb/promise';
+import dotenv from 'dotenv';
+
+// 加载环境变量
+dotenv.config();
+
+// 验证环境变量
+try {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+} catch (error) {
+  console.error('Error creating database pool:', error);
+  throw error;
+}
+
+// 创建PrismaMariaDb适配器
+const adapter = new PrismaMariaDb(process.env.DATABASE_URL);
 
 // 定义城市类型接口
 interface City {
@@ -33,7 +52,9 @@ interface CacheConfig {
 }
 
 // 创建Prisma客户端实例
-const prisma = new PrismaClient({} as any);
+const prisma = new PrismaClient({
+  adapter,
+});
 
 class PrismaCacheService {
   // 城市信息缓存
