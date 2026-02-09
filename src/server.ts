@@ -1,5 +1,5 @@
 import express from 'express';
-import { config } from './config.js';
+import { config } from './config/index.js';
 import weatherRouter from './routes/weather.js';
 import configRouter from './routes/config.js';
 import cronService from './services/cron-service.js';

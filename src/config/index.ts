@@ -1,9 +1,5 @@
-import dotenv from 'dotenv';
-import path from 'path';
-
-// 加载对应环境的变量文件
-const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+// 导入环境变量配置
+import { env } from './env.js';
 
 export const config = {
   env: process.env.NODE_ENV || 'development',
