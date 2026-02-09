@@ -1,4 +1,6 @@
 // 天气代码映射 - 增强版，确保与WeatherWidget完全匹配
+import { utcToLocalTime, formatLocalTime } from '../utils/time-utils.js';
+
 const weatherCodeMap: Record<string, string> = {
   '100': '0', // 晴
   '101': '1', // 多云
@@ -76,8 +78,9 @@ class DataTransform {
 
     const nowData = weatherData.now?.now || {};
     const city = weatherData.city || {};
-    const updateTime =
-      nowData.updateTime || weatherData.updateTime || new Date().toISOString();
+    const updateTime = utcToLocalTime(
+      nowData.updateTime || weatherData.updateTime || new Date()
+    ).toISOString();
 
     const temp = nowData.temp || '0';
     const weatherCode = weatherCodeMap[nowData.icon] || '0';
@@ -103,7 +106,9 @@ class DataTransform {
     const forecast = weatherData.forecast || {};
     const daily = forecast.daily || [];
     const city = weatherData.city || {};
-    const updateTime = forecast.updateTime || new Date().toISOString();
+    const updateTime = utcToLocalTime(
+      forecast.updateTime || new Date()
+    ).toISOString();
     const cityName = city.name || 'Unknown';
 
     let forecastXml = `<?xml version="1.0" encoding="utf-8"?>
