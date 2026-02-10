@@ -8,6 +8,8 @@ export enum DataType {
   // 天气预报类型
   FORECAST_WEATHER = 'ztewidgetcf',
   FORECAST_WEATHER_V3 = 'ztev3widgetcfall',
+  // WeatherTV 应用类型
+  ZTE = 'zte',
 }
 
 // 应用类型枚举
@@ -20,11 +22,19 @@ export enum AppType {
 // 天气数据接口
 export interface WeatherData {
   now?: {
-    now?: {
-      temp: string;
-      icon: string;
-      updateTime: string;
-    };
+    temp: string;
+    icon: string;
+    updateTime: string;
+    humidity?: string;
+    pressure?: string;
+    windSpeed?: string;
+    windDir?: string;
+    vis?: string;
+    feelsLike?: string;
+    dew?: string;
+    cloud?: string;
+    precip?: string;
+    uvIndex?: string;
   };
   forecast?: {
     daily?: Array<{
@@ -32,6 +42,23 @@ export interface WeatherData {
       tempMin: string;
       tempMax: string;
       iconDay: string;
+      iconNight?: string;
+      textDay?: string;
+      textNight?: string;
+      wind360Day?: string;
+      wind360Night?: string;
+      windDirDay?: string;
+      windDirNight?: string;
+      windScaleDay?: string;
+      windScaleNight?: string;
+      windSpeedDay?: string;
+      windSpeedNight?: string;
+      humidity?: string;
+      precip?: string;
+      pressure?: string;
+      vis?: string;
+      cloud?: string;
+      uvIndex?: string;
     }>;
     updateTime: string;
   };
