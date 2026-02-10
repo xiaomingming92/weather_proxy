@@ -1,5 +1,6 @@
 // 天气代码映射 - 增强版，确保与WeatherWidget完全匹配
-import { utcToLocalTime, formatLocalTime } from '../utils/time-utils.js';
+import { utcToLocalTime } from '../utils/time-utils.js';
+import { DataType, AppType, WeatherData } from '../types/index.js';
 
 const weatherCodeMap: Record<string, string> = {
   '100': '0', // 晴
@@ -64,20 +65,40 @@ const weatherCodeMap: Record<string, string> = {
 };
 
 class DataTransform {
-  toWidgetXml(weatherData: any, dataType: string): string {
-    if (dataType === 'ztev3widgetskall' || dataType === 'ztewidgetsk') {
-      return this.generateCurrentWeatherXml(weatherData);
-    } else if (dataType === 'ztewidgetcf') {
-      return this.generateForecastXml(weatherData);
+  toWidgetXml(
+    weatherData: WeatherData,
+    dataType: string,
+    appType: AppType = AppType.UNKNOWN
+  ): string {
+    if (
+      dataType === DataType.CURRENT_WEATHER_V3 ||
+      dataType === DataType.CURRENT_WEATHER
+    ) {
+      return this.generateCurrentWeatherXml(weatherData, appType);
+    } else if (
+      dataType === DataType.FORECAST_WEATHER ||
+      dataType === DataType.FORECAST_WEATHER_V3
+    ) {
+      return this.generateForecastXml(weatherData, appType);
     }
     return '<error>Invalid dataType</error>';
   }
 
-  private generateCurrentWeatherXml(weatherData: any): string {
-    console.log('Generating current weather XML with data:', weatherData);
+  private generateCurrentWeatherXml(
+    weatherData: WeatherData,
+    appType: AppType
+  ): string {
+    console.log(
+      `Generating current weather XML for ${appType} with data:`,
+      weatherData
+    );
 
-    const nowData = weatherData.now?.now || {};
-    const city = weatherData.city || {};
+    const nowData = weatherData.now?.now || {
+      temp: '0',
+      icon: '100',
+      updateTime: new Date().toISOString(),
+    };
+    const city = weatherData.city || { name: 'Unknown' };
     const updateTime = utcToLocalTime(
       nowData.updateTime || weatherData.updateTime || new Date()
     ).toISOString();
@@ -93,6 +114,8 @@ class DataTransform {
       updateTime,
     });
 
+    // 根据应用类型生成不同格式的XML
+    // 目前两种应用使用相同的格式，但保留扩展能力
     return `<?xml version="1.0" encoding="utf-8"?>
 <weather>
   <city>${cityName}</city>
@@ -102,10 +125,21 @@ class DataTransform {
 </weather>`;
   }
 
-  private generateForecastXml(weatherData: any): string {
-    const forecast = weatherData.forecast || {};
+  private generateForecastXml(
+    weatherData: WeatherData,
+    appType: AppType
+  ): string {
+    console.log(
+      `Generating forecast weather XML for ${appType} with data:`,
+      weatherData
+    );
+
+    const forecast = weatherData.forecast || {
+      daily: [],
+      updateTime: new Date().toISOString(),
+    };
     const daily = forecast.daily || [];
-    const city = weatherData.city || {};
+    const city = weatherData.city || { name: 'Unknown' };
     const updateTime = utcToLocalTime(
       forecast.updateTime || new Date()
     ).toISOString();
@@ -144,6 +178,7 @@ class DataTransform {
     forecastXml += `
 </weather>`;
 
+    console.log('Generated forecast XML:', forecastXml);
     return forecastXml;
   }
 

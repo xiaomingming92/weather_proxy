@@ -2,7 +2,7 @@
  * @Author       : Z2-WIN\xmm wujixmm@gmail.com
  * @Date         : 2026-02-05 13:41:04
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
- * @LastEditTime : 2026-02-05 16:12:23
+ * @LastEditTime : 2026-02-09 15:00:00
  * @FilePath     : \decompile\weather_proxy\src\routes\weather.ts
  * @Description  :
  */
@@ -11,6 +11,7 @@ import weatherApi from '../services/weather-api.js';
 import dataTransform from '../services/data-transform.js';
 import cache from '../services/cache.js';
 import prismaCache from '../services/prisma-cache.js';
+import { AppType } from '../types/index.js';
 
 const router = express.Router();
 
@@ -25,6 +26,15 @@ router.get('/', async (req, res): Promise<void> => {
       res.status(400).send('<error>Missing dataType parameter</error>');
       return;
     }
+
+    // 识别应用类型
+    let appType: AppType = AppType.UNKNOWN;
+    if (code === '50532E') {
+      appType = AppType.WEATHER_WIDGET;
+    } else if (code === '1D765B') {
+      appType = AppType.WEATHER_TV;
+    }
+    console.log('Identified app type:', appType);
 
     // 确定位置参数
     let locationParam: string;
@@ -93,9 +103,14 @@ router.get('/', async (req, res): Promise<void> => {
     console.log('Weather API response received');
 
     // 转换数据格式
-    console.log('Transforming data for', dataType);
-    const xmlData = dataTransform.toWidgetXml(weatherData, dataType as string);
+    console.log('Transforming data for', dataType, 'and app type', appType);
+    const xmlData = dataTransform.toWidgetXml(
+      weatherData,
+      dataType as string,
+      appType
+    );
     console.log('Data transformed successfully');
+    console.log('Generated XML response:', xmlData);
 
     // 缓存数据到内存
     cache.set(cacheKey, xmlData);
