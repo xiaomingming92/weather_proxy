@@ -180,11 +180,12 @@ curl "http://localhost:1888/api/weather?dataType=CURRENT_WEATHER&sname=北京&co
 3. 服务将运行在 `http://localhost:1888`
 
 ### 生产环境部署
-
-1. 安装依赖：`npm install`
-2. 构建项目：`npm run build`
-3. 启动服务：`npm run pm2:start`
-4. 服务将以 PM2 守护进程方式运行
+- CI/CD方式：目前适配了github的action
+- 手动部署方式：
+  1. 安装依赖：`npm install`
+  2. 构建项目：`npm run build`
+  3. 启动服务：`npm run pm2:start`
+  4. 服务将以 PM2 守护进程方式运行
 
 ### PM2 配置
 
