@@ -1,3 +1,11 @@
+/*
+ * @Author       : Z2-WIN\xmm wujixmm@gmail.com
+ * @Date         : 2026-02-09 17:08:58
+ * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
+ * @LastEditTime : 2026-02-10 16:14:59
+ * @FilePath     : \decompile\weather_proxy\src\types\index.ts
+ * @Description  :
+ */
 // 类型定义文件
 
 // 数据类型枚举
@@ -59,12 +67,45 @@ export interface WeatherData {
       vis?: string;
       cloud?: string;
       uvIndex?: string;
+      sunrise?: string;
+      sunset?: string;
+    }>;
+    updateTime: string;
+  };
+  hourly?: {
+    hourly?: Array<{
+      fxTime: string;
+      temp: string;
+      icon: string;
+      text: string;
+      wind360: string;
+      windDir: string;
+      windScale: string;
+      windSpeed: string;
+      humidity: string;
+      precip: string;
+      pressure: string;
+      vis: string;
+      cloud: string;
+      dew: string;
+    }>;
+    updateTime: string;
+  };
+  indices?: {
+    daily?: Array<{
+      date: string;
+      type: string;
+      name: string;
+      category: string;
+      text: string;
     }>;
     updateTime: string;
   };
   city?: {
     id: string;
     name: string;
+    sunrise?: string;
+    sunset?: string;
   };
   updateTime?: string;
 }

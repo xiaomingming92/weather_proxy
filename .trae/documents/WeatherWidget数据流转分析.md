@@ -2,7 +2,7 @@
 
 ## 1. 整体架构
 
-WeatherWidget是一个天气小部件，它通过ContentProvider获取天气数据，并在小部件上显示当前天气和未来两天的天气预报。
+WeatherWidget是一个天气小部件，它通过ContentProvider获取天气数据，并在小部件上显示当前天气和未来两天的天气预报。扩展后支持天气指数和多天预报功能。
 
 ### 核心组件
 
@@ -11,6 +11,13 @@ WeatherWidget是一个天气小部件，它通过ContentProvider获取天气数�
 - **WeatherProvider**：ContentProvider，提供天气数据的URI
 - **WeatherCurrentCondition**：当前天气数据模型
 - **WeatherForecastCondition**：天气预报数据模型
+- **WeatherIndicesCondition**：天气指数数据模型（扩展）
+- **WeatherMultiDayForecastCondition**：多天天气预报数据模型（扩展）
+
+### 扩展组件
+
+- **IndicesHandler**：处理天气指数数据的解析和存储
+- **MultiDayForecastHandler**：处理多天天气预报数据的解析和存储
 
 ## 2. 触发机制
 
@@ -37,6 +44,7 @@ WeatherWidget的初始化过程非常详细，涉及多个组件的创建和初�
 15. **初始化上下文**：获取并存储`mContext`
 16. **初始化日历工具**：创建`lunarcalendar`用于处理农历
 17. **初始化意图过滤器**：创建并配置`datetimeFilter`用于接收时间相关广播
+18. **初始化扩展组件**：创建`indicesHandler`和`multiDayForecastHandler`（扩展）
 
 #### 2.1.2 核心组件初始化代码
 
@@ -83,15 +91,26 @@ new-instance v1, Landroid/os/Handler;
 invoke-direct {v1}, Landroid/os/Handler;-><init>()V
 invoke-direct {v0, p0, v1}, Lcom/zte/WeatherWidget/TypeBWeatherWidget$4;-><init>(Lcom/zte/WeatherWidget/TypeBWeatherWidget;Landroid/os/Handler;)V
 iput-object v0, p0, Lcom/zte/WeatherWidget/TypeBWeatherWidget;->mWeatherObserver:Landroid/database/ContentObserver;
+
+# 初始化扩展组件
+# 创建indicesHandler
+new-instance v0, Lcom/zte/WeatherWidget/IndicesHandler;
+invoke-direct {v0, p0}, Lcom/zte/WeatherWidget/IndicesHandler;-><init>(Lcom/zte/WeatherWidget/TypeBWeatherWidget;)V
+iput-object v0, p0, Lcom/zte/WeatherWidget/TypeBWeatherWidget;->indicesHandler:Lcom/zte/WeatherWidget/IndicesHandler;
+
+# 创建multiDayForecastHandler
+new-instance v0, Lcom/zte/WeatherWidget/MultiDayForecastHandler;
+invoke-direct {v0, p0}, Lcom/zte/WeatherWidget/MultiDayForecastHandler;-><init>(Lcom/zte/WeatherWidget/TypeBWeatherWidget;)V
+iput-object v0, p0, Lcom/zte/WeatherWidget/TypeBWeatherWidget;->multiDayForecastHandler:Lcom/zte/WeatherWidget/MultiDayForecastHandler;
 ```
 
 ### 2.2 定时触发
 
-WeatherWidget会定期触发天气更新，具体的触发机制可能是通过AlarmManager或Handler实现的。
+WeatherWidget会定期触发天气更新，具体的触发机制可能是通过AlarmManager或Handler实现的。扩展后会同时触发指数和多天预报的更新。
 
 ### 2.3 手动触发
 
-用户可以通过点击小部件或进入设置页面手动触发天气更新。
+用户可以通过点击小部件或进入设置页面手动触发天气更新。扩展后手动触发会同时更新指数和多天预报数据。
 
 ## 3. 请求接口
 
@@ -109,7 +128,14 @@ WeatherWidget使用ContentProvider获取天气数据，URI为：
 52     sput-object v0, Lcom/zte/WeatherWidget/zteweather/WeatherProvider;->WEATHER_URI:Landroid/net/Uri;
 ```
 
-### 3.2 查询参数
+### 3.2 扩展URI
+
+扩展后添加新的URI用于指数和多天预报：
+
+- **指数数据URI**：`content://com.android.ztewidget2d.weather/indices`
+- **多天预报URI**：`content://com.android.ztewidget2d.weather/forecast/multi`
+
+### 3.3 查询参数
 
 WeatherWidget主要使用城市ID作为查询参数，具体流程如下：
 
@@ -121,6 +147,8 @@ WeatherWidget主要使用城市ID作为查询参数，具体流程如下：
 2. **URI构建**：
    - 标准查询URI：`content://com.android.ztewidget2d.weather/weather`
    - 按ID查询URI：`content://com.android.ztewidget2d.weather/weather/{cityId}`
+   - 指数查询URI：`content://com.android.ztewidget2d.weather/indices/{cityId}`
+   - 多天预报查询URI：`content://com.android.ztewidget2d.weather/forecast/multi/{cityId}`
 
 3. **查询条件**：
    - 使用城市名称作为查询条件：`cityname = NowCityName`
@@ -130,7 +158,7 @@ WeatherWidget主要使用城市ID作为查询参数，具体流程如下：
    - WeatherWidget**不直接使用经纬度**作为查询参数
    - 所有位置信息都来自配置的城市ID，而非实时定位
 
-### 3.3 配置城市参数逻辑
+### 3.4 配置城市参数逻辑
 
 1. **获取主城市**：
    - `WeatherSetting.getMainCity()`从配置数据库查询`configname = 'main_city'`的记录
@@ -144,6 +172,7 @@ WeatherWidget主要使用城市ID作为查询参数，具体流程如下：
    - `WeatherService.getCityNamesAndIds()`将主城市信息读入`checkedNames`列表
    - 遍历该列表，对每个城市进行天气数据请求
    - `TypeBWeatherWidget.queryWeatherByCity()`使用这些配置进行本地数据库查询
+   - 扩展后同时查询指数和多天预报数据
 
 ## 4. 数据流转
 
@@ -154,7 +183,27 @@ WeatherWidget主要使用城市ID作为查询参数，具体流程如下：
 3. **解析结果**：QueryHandler处理查询结果，从Cursor中读取数据
 4. **更新UI**：将解析的数据更新到小部件的UI上
 
-### 4.2 数据读取
+### 4.2 指数数据流转
+
+1. **发起指数查询**：TypeBWeatherWidget通过indicesHandler发起指数查询
+2. **ContentProvider处理**：WeatherProvider接收指数查询请求，调用代理服务获取指数数据
+3. **API调用**：代理服务调用和风天气指数API：`/v7/indices/{days}`
+4. **数据转换**：代理服务将API返回的指数数据转换为WeatherWidget期望的格式
+5. **数据返回**：代理服务将转换后的数据返回给ContentProvider
+6. **解析结果**：IndicesHandler处理指数查询结果，从Cursor中读取数据
+7. **更新UI**：将指数数据更新到小部件的UI上（如果支持）
+
+### 4.3 多天预报数据流转
+
+1. **发起多天预报查询**：TypeBWeatherWidget通过multiDayForecastHandler发起多天预报查询
+2. **ContentProvider处理**：WeatherProvider接收多天预报查询请求，调用代理服务获取多天预报数据
+3. **API调用**：代理服务调用和风天气每日预报API：`/v7/weather/{days}`
+4. **数据转换**：代理服务将API返回的多天预报数据转换为WeatherWidget期望的格式
+5. **数据返回**：代理服务将转换后的数据返回给ContentProvider
+6. **解析结果**：MultiDayForecastHandler处理多天预报查询结果，从Cursor中读取数据
+7. **更新UI**：将多天预报数据更新到小部件的UI上（如果支持）
+
+### 4.4 数据读取
 
 QueryHandler从Cursor中读取数据的过程：
 
@@ -198,6 +247,39 @@ QueryHandler从Cursor中读取数据的过程：
 123     move-result-object v6
 124
 125     iput-object v6, v5, Lcom/zte/WeatherWidget/TypeBWeatherWidget$WeatherItem;->curTemp:Ljava/lang/String;
+```
+
+### 4.5 指数数据读取
+
+IndicesHandler从Cursor中读取指数数据的过程（扩展）：
+
+```smali
+# 读取指数数据示例
+invoke-interface {p3, v0}, Landroid/database/Cursor;->moveToPosition(I)Z
+move-result v6
+
+if-eqz v6, :cond_0
+
+new-instance v5, Lcom/zte/WeatherWidget/WeatherIndicesCondition;
+invoke-direct {v5}, Lcom/zte/WeatherWidget/WeatherIndicesCondition;-><init>()V
+
+# 读取指数名称
+const/4 v6, 0x1
+invoke-interface {p3, v6}, Landroid/database/Cursor;->getString(I)Ljava/lang/String;
+move-result-object v6
+iput-object v6, v5, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->indicesName:Ljava/lang/String;
+
+# 读取指数等级
+const/4 v6, 0x2
+invoke-interface {p3, v6}, Landroid/database/Cursor;->getInt(I)I
+move-result v6
+iput v6, v5, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->indicesLevel:I
+
+# 读取指数描述
+const/4 v6, 0x3
+invoke-interface {p3, v6}, Landroid/database/Cursor;->getString(I)Ljava/lang/String;
+move-result-object v6
+iput-object v6, v5, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->indicesDesc:Ljava/lang/String;
 ```
 
 ## 5. 数据结构
@@ -318,11 +400,67 @@ QueryHandler从Cursor中读取数据的过程：
 - minTemp：最低温度
 - refreshTime：刷新时间
 
+### 5.4 天气指数数据模型（扩展）
+
+`WeatherIndicesCondition`类包含以下字段：
+
+```smali
+# 天气指数数据模型示例
+const-string v0, "Unknown"
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->cityName:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->reportTime:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->indicesName:Ljava/lang/String;
+
+const/4 v0, 0x0
+iput v0, p0, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->indicesLevel:I
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->indicesDesc:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherIndicesCondition;->indicesCategory:Ljava/lang/String;
+```
+
+### 5.5 多天预报数据模型（扩展）
+
+`WeatherMultiDayForecastCondition`类包含以下字段：
+
+```smali
+# 多天预报数据模型示例
+const-string v0, "Unknown"
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->cityName:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->reportTime:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->forecastDate:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->sunrise:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->sunset:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->tempMax:Ljava/lang/String;
+
+const-string v0, ""
+iput-object v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->tempMin:Ljava/lang/String;
+
+const/4 v0, 0x0
+iput v0, p0, Lcom/zte/WeatherWidget/WeatherMultiDayForecastCondition;->condition:I
+```
+
 ## 6. 数据缓存机制
 
 ### 6.1 数据库缓存
 
-WeatherWidget使用SQLite数据库缓存天气数据，ContentProvider从数据库中读取数据。
+WeatherWidget使用SQLite数据库缓存天气数据，ContentProvider从数据库中读取数据。扩展后增加指数和多天预报的数据表。
 
 ### 6.2 内存缓存
 
@@ -334,7 +472,14 @@ WeatherWidget使用SQLite数据库缓存天气数据，ContentProvider从数据�
 72     invoke-virtual {v6}, Ljava/util/ArrayList;->clear()V
 ```
 
-### 6.3 缓存更新
+### 6.3 扩展缓存
+
+扩展后增加指数和多天预报的内存缓存：
+
+- **indicesCache**：缓存指数数据的ArrayList
+- **multiDayForecastCache**：缓存多天预报数据的ArrayList
+
+### 6.4 缓存更新
 
 当获取到新的天气数据后，会清除旧的缓存并添加新的数据：
 
@@ -344,11 +489,23 @@ WeatherWidget使用SQLite数据库缓存天气数据，ContentProvider从数据�
 72     invoke-virtual {v6}, Ljava/util/ArrayList;->clear()V
 ```
 
+扩展后同时更新指数和多天预报缓存：
+
+```smali
+# 更新指数缓存
+iget-object v6, v6, Lcom/zte/WeatherWidget/TypeBWeatherWidget;->indicesCache:Ljava/util/ArrayList;
+invoke-virtual {v6}, Ljava/util/ArrayList;->clear()V
+
+# 更新多天预报缓存
+iget-object v6, v6, Lcom/zte/WeatherWidget/TypeBWeatherWidget;->multiDayForecastCache:Ljava/util/ArrayList;
+invoke-virtual {v6}, Ljava/util/ArrayList;->clear()V
+```
+
 ## 7. 与代理服务的交互
 
 ### 7.1 代理服务
 
-我们实现了一个Node.js代理服务，用于获取QWeather API的天气数据并转换为WeatherWidget期望的格式。
+我们实现了一个Node.js代理服务，用于获取QWeather API的天气数据并转换为WeatherWidget期望的格式。扩展后支持指数和多天预报API。
 
 ### 7.2 数据流转
 
@@ -358,6 +515,24 @@ WeatherWidget使用SQLite数据库缓存天气数据，ContentProvider从数据�
 4. **数据转换**：代理服务将QWeather API返回的数据转换为WeatherWidget期望的格式
 5. **数据返回**：代理服务将转换后的数据返回给ContentProvider
 6. **数据显示**：ContentProvider将数据返回给WeatherWidget，WeatherWidget更新UI
+
+### 7.3 指数数据交互
+
+1. **WeatherWidget请求指数**：WeatherWidget通过ContentProvider请求指数数据
+2. **ContentProvider处理**：ContentProvider调用代理服务获取指数数据
+3. **API调用**：代理服务调用和风天气指数API：`/v7/indices/{days}`
+4. **数据转换**：代理服务将API返回的指数数据转换为WeatherWidget期望的格式
+5. **数据返回**：代理服务将转换后的数据返回给ContentProvider
+6. **数据显示**：ContentProvider将指数数据返回给WeatherWidget，WeatherWidget更新UI（如果支持）
+
+### 7.4 多天预报数据交互
+
+1. **WeatherWidget请求多天预报**：WeatherWidget通过ContentProvider请求多天预报数据
+2. **ContentProvider处理**：ContentProvider调用代理服务获取多天预报数据
+3. **API调用**：代理服务调用和风天气每日预报API：`/v7/weather/{days}`
+4. **数据转换**：代理服务将API返回的多天预报数据转换为WeatherWidget期望的格式
+5. **数据返回**：代理服务将转换后的数据返回给ContentProvider
+6. **数据显示**：ContentProvider将多天预报数据返回给WeatherWidget，WeatherWidget更新UI（如果支持）
 
 ## 8. 数据流转流程图
 
@@ -380,6 +555,43 @@ WeatherWidget使用SQLite数据库缓存天气数据，ContentProvider从数据�
            │ 10. 显示天气信息           │                          │
            │                          │                          │
            └───────────────────────────────────────────────────────┘
+
+# 扩展：指数和多天预报数据流转
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│ TypeBWeatherWidget  │     │ IndicesHandler      │     │   WeatherProvider   │
+│  (Widget主类)        │     │ (指数数据处理)        │     │  (数据提供)         │
+└──────────┬──────────┘     └──────────┬──────────┘     └──────────┬──────────┘
+           │                          │                          │
+           │ 1. 发起指数查询           │                          │
+           ├──────────────────────────>│ 2. 执行指数查询           │
+           │                          ├──────────────────────────>│ 3. 调用指数API     │
+           │                          │                          │ 4. 获取指数数据     │
+           │                          │ 5. 解析指数结果           │<──────────────────┘
+           │ 6. 更新指数UI             │<──────────────────────────┘
+           │                          │ 7. 缓存指数数据           │
+           │                          ├──────────────────────────>│ 8. 存储指数到缓存   │
+           │<──────────────────────────┘                          │
+           │ 9. 显示指数信息           │                          │
+           │                          │                          │
+           └───────────────────────────────────────────────────────┘
+
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│ TypeBWeatherWidget  │     │MultiDayForecastHandler│     │   WeatherProvider   │
+│  (Widget主类)        │     │ (多天预报处理)        │     │  (数据提供)         │
+└──────────┬──────────┘     └──────────┬──────────┘     └──────────┬──────────┘
+           │                          │                          │
+           │ 1. 发起多天预报查询        │                          │
+           ├──────────────────────────>│ 2. 执行多天预报查询        │
+           │                          ├──────────────────────────>│ 3. 调用每日预报API  │
+           │                          │                          │ 4. 获取多天预报数据  │
+           │                          │ 5. 解析多天预报结果        │<──────────────────┘
+           │ 6. 更新多天预报UI          │<──────────────────────────┘
+           │                          │ 7. 缓存多天预报数据        │
+           │                          ├──────────────────────────>│ 8. 存储多天预报到缓存 │
+           │<──────────────────────────┘                          │
+           │ 9. 显示多天预报信息        │                          │
+           │                          │                          │
+           └───────────────────────────────────────────────────────┘
 ```
 
 ## 9. 技术细节
@@ -393,7 +605,25 @@ QueryHandler继承自AsyncQueryHandler，用于在后台线程中执行数据库
 3. **解析数据**：从Cursor中读取数据并解析为WeatherItem对象
 4. **更新UI**：将解析后的数据传递给TypeBWeatherWidget更新UI
 
-### 9.2 WeatherProvider数据库操作
+### 9.2 IndicesHandler工作原理（扩展）
+
+IndicesHandler负责处理天气指数数据的解析和存储：
+
+1. **发起指数查询**：通过startIndicesQuery方法发起指数查询
+2. **处理指数结果**：在onIndicesQueryComplete方法中处理指数查询结果
+3. **解析指数数据**：从Cursor中读取指数数据并解析为WeatherIndicesCondition对象
+4. **更新UI**：将解析后的指数数据传递给TypeBWeatherWidget更新UI（如果支持）
+
+### 9.3 MultiDayForecastHandler工作原理（扩展）
+
+MultiDayForecastHandler负责处理多天天气预报数据的解析和存储：
+
+1. **发起多天预报查询**：通过startMultiDayForecastQuery方法发起多天预报查询
+2. **处理多天预报结果**：在onMultiDayForecastQueryComplete方法中处理多天预报查询结果
+3. **解析多天预报数据**：从Cursor中读取多天预报数据并解析为WeatherMultiDayForecastCondition对象
+4. **更新UI**：将解析后的多天预报数据传递给TypeBWeatherWidget更新UI（如果支持）
+
+### 9.4 WeatherProvider数据库操作
 
 WeatherProvider是一个ContentProvider，它提供了以下功能：
 
@@ -403,7 +633,16 @@ WeatherProvider是一个ContentProvider，它提供了以下功能：
 4. **数据更新**：在update方法中更新天气数据
 5. **数据删除**：在delete方法中删除天气数据
 
-### 9.3 错误处理机制
+### 9.5 扩展数据库操作
+
+扩展后WeatherProvider增加以下功能：
+
+1. **指数数据查询**：处理指数数据的查询请求
+2. **指数数据插入**：插入新的指数数据
+3. **多天预报数据查询**：处理多天预报数据的查询请求
+4. **多天预报数据插入**：插入新的多天预报数据
+
+### 9.6 错误处理机制
 
 WeatherWidget包含简单的错误处理机制：
 
@@ -411,11 +650,21 @@ WeatherWidget包含简单的错误处理机制：
 2. **异常捕获**：在启动Activity时捕获ActivityNotFoundException和SecurityException
 3. **日志记录**：使用Log.e方法记录错误信息
 
+### 9.7 扩展错误处理
+
+扩展后增加以下错误处理机制：
+
+1. **指数API错误处理**：处理指数API调用失败的情况
+2. **多天预报API错误处理**：处理多天预报API调用失败的情况
+3. **数据解析错误处理**：处理指数和多天预报数据解析失败的情况
+
 ## 10. 总结
 
 WeatherWidget通过ContentProvider获取天气数据，使用QueryHandler解析数据，并在小部件上显示当前天气和未来两天的天气预报。它使用SQLite数据库和内存缓存存储天气数据，以提高性能和减少网络请求。
 
-我们的代理服务可以作为WeatherWidget的数据源，提供实时的天气数据，并转换为WeatherWidget期望的格式。
+扩展后，WeatherWidget支持天气指数和多天预报功能，通过新增的IndicesHandler和MultiDayForecastHandler处理相应的数据流转。代理服务集成了和风天气的指数API和每日预报API，提供更丰富的天气数据。
+
+我们的代理服务可以作为WeatherWidget的数据源，提供实时的天气数据，并转换为WeatherWidget期望的格式。扩展后的数据流转机制确保了指数和多天预报数据的正确获取和处理。
 
 ## 11. 代码优化建议
 
@@ -426,3 +675,6 @@ WeatherWidget通过ContentProvider获取天气数据，使用QueryHandler解析�
 5. **添加数据验证**：对获取的天气数据进行验证，确保数据的完整性和准确性
 6. **优化UI更新**：减少不必要的UI更新，提高应用的响应速度
 7. **添加单元测试**：为核心功能添加单元测试，确保代码的质量和稳定性
+8. **优化API调用**：合并相关API调用，减少网络请求次数
+9. **添加数据压缩**：对缓存数据进行压缩，减少存储占用
+10. **实现增量更新**：只更新变化的数据，减少数据传输量

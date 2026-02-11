@@ -44,6 +44,11 @@ router.get('/', async (req, res): Promise<void> => {
       locationParam = sname as string;
       // 通过城市名称获取城市ID
       const cityInfo = await weatherApi.getWeather(locationParam);
+      if (!cityInfo.city) {
+        console.log('City info not found for:', locationParam);
+        res.status(404).send('<error>City not found</error>');
+        return;
+      }
       actualCityId = cityInfo.city.id;
     } else if (cityId) {
       locationParam = cityId as string;
@@ -52,6 +57,11 @@ router.get('/', async (req, res): Promise<void> => {
       locationParam = location as string;
       // 通过经纬度获取城市ID
       const cityInfo = await weatherApi.getWeather(locationParam);
+      if (!cityInfo.city) {
+        console.log('City info not found for:', locationParam);
+        res.status(404).send('<error>City not found</error>');
+        return;
+      }
       actualCityId = cityInfo.city.id;
     } else {
       console.log('Missing location parameter (sname, cityId, or location)');

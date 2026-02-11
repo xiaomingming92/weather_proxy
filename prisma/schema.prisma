@@ -28,7 +28,7 @@ model WeatherData {
   id           Int      @id @default(autoincrement())
   cityId       String
   dataType     String
-  xmlData      String
+  xmlData      String @db.Text
   timestamp    BigInt
   timezone     String   @default("Asia/Shanghai")
   expiresAt    BigInt

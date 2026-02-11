@@ -4,6 +4,7 @@ import { SignJWT, importPKCS8 } from 'jose';
 import fs from 'fs';
 import { env } from '../config/env.js';
 import prismaCache from './prisma-cache.js';
+import { WeatherData } from '../types/index.js';
 
 // 定义JWT配置接口
 interface JwtConfig {
@@ -16,13 +17,6 @@ interface JwtConfig {
 interface CityInfo {
   id: string;
   name: string;
-}
-
-// 定义天气数据接口
-interface WeatherData {
-  now: any;
-  forecast: any;
-  city: CityInfo;
 }
 
 class WeatherApi {
@@ -95,11 +89,31 @@ class WeatherApi {
       // 3. 获取天气预报
       const forecast = await this.getForecast(cityId);
 
+      // 4. 获取24小时预报
+      const hourlyForecast = await this.getHourlyForecast(cityId);
+
+      // 5. 获取天气指数
+      const weatherIndices = await this.getWeatherIndices(cityId);
+
+      // 6. 提取日出日落数据（如果有）
+      let sunrise = '';
+      let sunset = '';
+      if (forecast && forecast.daily && forecast.daily.length > 0) {
+        sunrise = forecast.daily[0].sunrise || '';
+        sunset = forecast.daily[0].sunset || '';
+      }
+
       console.log('Weather data retrieved successfully');
       return {
         now: nowWeather,
         forecast: forecast,
-        city: cityInfo.location[0],
+        hourly: hourlyForecast,
+        indices: weatherIndices,
+        city: {
+          ...cityInfo.location[0],
+          sunrise,
+          sunset,
+        },
       };
     } catch (error) {
       console.error('Weather API error:', error);
@@ -244,6 +258,105 @@ class WeatherApi {
         params: {
           location: cityId,
           lang: 'zh',
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Accept-Encoding': 'gzip, deflate',
+        },
+        decompress: true,
+        validateStatus: function (status) {
+          console.log('Response status:', status);
+          return true; // 允许所有状态码
+        },
+      });
+
+      console.log('Response data:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Request error:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error:', error.response?.data);
+        console.error('Status:', error.response?.status);
+        console.error('Headers:', error.response?.headers);
+        if (error.response?.data && error.response.data.error) {
+          console.error('Error details:', error.response.data.error);
+          if (error.response.data.error.invalidParams) {
+            console.error(
+              'Invalid params:',
+              error.response.data.error.invalidParams
+            );
+          }
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async getHourlyForecast(cityId: string) {
+    const token = await this.generateJWT();
+    const url = `${this.baseUrl}/weather/24h`;
+    console.log('Request URL:', url);
+    console.log('Request params:', { location: cityId });
+    console.log('Request headers:', {
+      Authorization: `Bearer ${token.substring(0, 50)}...`, // 只显示前50个字符
+      'Accept-Encoding': 'gzip, deflate',
+    });
+
+    try {
+      const response = await axios.get(url, {
+        params: {
+          location: cityId,
+          lang: 'zh',
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Accept-Encoding': 'gzip, deflate',
+        },
+        decompress: true,
+        validateStatus: function (status) {
+          console.log('Response status:', status);
+          return true; // 允许所有状态码
+        },
+      });
+
+      console.log('Response data:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Request error:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error:', error.response?.data);
+        console.error('Status:', error.response?.status);
+        console.error('Headers:', error.response?.headers);
+        if (error.response?.data && error.response.data.error) {
+          console.error('Error details:', error.response.data.error);
+          if (error.response.data.error.invalidParams) {
+            console.error(
+              'Invalid params:',
+              error.response.data.error.invalidParams
+            );
+          }
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async getWeatherIndices(cityId: string) {
+    const token = await this.generateJWT();
+    const url = `${this.baseUrl}/indices/1d`;
+    console.log('Request URL:', url);
+    console.log('Request params:', { location: cityId });
+    console.log('Request headers:', {
+      Authorization: `Bearer ${token.substring(0, 50)}...`, // 只显示前50个字符
+      'Accept-Encoding': 'gzip, deflate',
+    });
+
+    try {
+      const response = await axios.get(url, {
+        params: {
+          location: cityId,
+          lang: 'zh',
+          type: '1,2,3,5,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25',
         },
         headers: {
           Authorization: `Bearer ${token}`,

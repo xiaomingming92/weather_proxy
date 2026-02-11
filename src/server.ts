@@ -18,6 +18,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// 路由
+app.use('/api/weather', weatherRouter);
+app.use('/api/config', configRouter);
+
 // 错误处理中间件
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('========================================');
@@ -27,10 +31,6 @@ app.use((err: any, req: any, res: any, next: any) => {
   console.error('========================================');
   res.status(500).send('Internal Server Error');
 });
-
-// 路由
-app.use('/api/weather', weatherRouter);
-app.use('/api/config', configRouter);
 
 // 健康检查
 app.get('/health', (req, res) => {
