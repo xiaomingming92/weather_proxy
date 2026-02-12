@@ -57,12 +57,14 @@ model WeatherData {
 
 model CachePolicy {
   id          Int      @id @default(autoincrement())
-  dataType    String   @unique
+  dataType    String
   appType     String
   duration    Int
   description String?
   createdAt   BigInt
   updatedAt   BigInt
+
+  @@unique([dataType, appType])
 }
 
 model CacheConfig {
