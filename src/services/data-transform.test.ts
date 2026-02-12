@@ -287,7 +287,7 @@ describe('DataTransform', () => {
   });
 
   describe('toWidgetXml - WeatherWidget Current', () => {
-    it('should generate WeatherWidget current weather XML', () => {
+    it('should generate WeatherWidget current weather XML with CityMeteor structure', () => {
       const xml = dataTransform.toWidgetXml(
         mockWeatherData,
         DataType.CURRENT_WEATHER_V3,
@@ -295,17 +295,29 @@ describe('DataTransform', () => {
       );
 
       expect(xml).toContain('<?xml version="1.0" encoding="utf-8"?>');
-      expect(xml).toContain('<weather>');
-      expect(xml).toContain('<city>北京</city>');
-      expect(xml).toContain('<temp>25</temp>');
-      expect(xml).toContain('<weather>0</weather>');
-      expect(xml).toContain('<reporttime>');
-      expect(xml).toContain('</weather>');
+      expect(xml).toContain('<CityMeteor CityName="北京">');
+      expect(xml).toContain('<SK ReportTime=');
+      expect(xml).toContain('<Info Weather="0" Temperature="25"');
+      expect(xml).toContain('</SK>');
+      expect(xml).toContain('</CityMeteor>');
+    });
+
+    it('should match WeatherWidget parser expected format', () => {
+      const xml = dataTransform.toWidgetXml(
+        mockWeatherData,
+        DataType.CURRENT_WEATHER_V3,
+        AppType.WEATHER_WIDGET
+      );
+
+      // Verify structure matches CurrentWeatherHandler expectations
+      expect(xml).toMatch(/<CityMeteor\s+CityName="[^"]+"/);
+      expect(xml).toMatch(/<SK\s+ReportTime="[^"]+"/);
+      expect(xml).toMatch(/<Info\s+Weather="\d+"\s+Temperature="[^"]+"/);
     });
   });
 
   describe('toWidgetXml - WeatherWidget Forecast', () => {
-    it('should generate WeatherWidget forecast XML', () => {
+    it('should generate WeatherWidget forecast XML with CityMeteor structure', () => {
       const xml = dataTransform.toWidgetXml(
         mockWeatherData,
         DataType.FORECAST_WEATHER_V3,
@@ -313,15 +325,44 @@ describe('DataTransform', () => {
       );
 
       expect(xml).toContain('<?xml version="1.0" encoding="utf-8"?>');
-      expect(xml).toContain('<weather>');
-      expect(xml).toContain('<city>北京</city>');
-      expect(xml).toContain('<reporttime>');
-      expect(xml).toContain('<startTime1>2024-01-01 00:00:00</startTime1>');
-      expect(xml).toContain('<endTime1>2024-01-01 23:59:59</endTime1>');
-      expect(xml).toContain('<condition1>0</condition1>');
-      expect(xml).toContain('<tempMin1>15</tempMin1>');
-      expect(xml).toContain('<tempMax1>25</tempMax1>');
-      expect(xml).toContain('</weather>');
+      expect(xml).toContain('<CityMeteor CityName="北京">');
+      expect(xml).toContain('<CF ReportTime=');
+      expect(xml).toContain('<Period');
+      expect(xml).toContain('Timestart=');
+      expect(xml).toContain('Timeend=');
+      expect(xml).toContain('Week=');
+      expect(xml).toContain('Weather=');
+      expect(xml).toContain('Tmin=');
+      expect(xml).toContain('Tmax=');
+      expect(xml).toContain('</CF>');
+      expect(xml).toContain('</CityMeteor>');
+    });
+
+    it('should include exactly 2 Period elements for WeatherWidget compatibility', () => {
+      const xml = dataTransform.toWidgetXml(
+        mockWeatherData,
+        DataType.FORECAST_WEATHER_V3,
+        AppType.WEATHER_WIDGET
+      );
+
+      // WeatherWidget only parses first 2 Period elements
+      const periodMatches = xml.match(/<Period/g);
+      expect(periodMatches?.length).toBe(2);
+    });
+
+    it('should match WeatherWidget ForecastWeatherHandler expected format', () => {
+      const xml = dataTransform.toWidgetXml(
+        mockWeatherData,
+        DataType.FORECAST_WEATHER_V3,
+        AppType.WEATHER_WIDGET
+      );
+
+      // Verify structure matches ForecastWeatherHandler expectations
+      expect(xml).toMatch(/<CityMeteor\s+CityName="[^"]+"/);
+      expect(xml).toMatch(/<CF\s+ReportTime="[^"]+"/);
+      expect(xml).toMatch(
+        /<Period\s+Timestart="[^"]+"\s+Timeend="[^"]+"\s+Week="[1-7]"\s+Weather="\d+"\s+Tmin="[^"]+"\s+Tmax="[^"]+"/
+      );
     });
   });
 

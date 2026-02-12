@@ -347,14 +347,75 @@ class DataTransform {
 </CityList>`;
   }
 
-  // WeatherWidget 当前天气 XML
+  // WeatherWidget 当前天气 XML - 兼容原WeatherWidget解析器
   private generateWeatherWidgetCurrentXml(weatherData: WeatherData): string {
-    return this.generateCurrentWeatherXml(weatherData, AppType.WEATHER_WIDGET);
+    console.log('Generating WeatherWidget current XML with data:', weatherData);
+
+    const nowData = weatherData.now || {
+      temp: '0',
+      icon: '100',
+      updateTime: new Date().toISOString(),
+    };
+    const city = this.extractCityInfo(weatherData);
+    const updateTime = this.formatUpdateTime(
+      nowData.updateTime || weatherData.updateTime
+    );
+
+    const temp = nowData.temp || '0';
+    const weatherCode = this.getWeatherCode(nowData.icon);
+    const cityName = city.name || 'Unknown';
+
+    // WeatherWidget期望的格式: CityMeteor > SK > Info
+    const xml = `${this.generateXmlHeader()}
+<CityMeteor CityName="${cityName}">
+  <SK ReportTime="${updateTime}">
+    <Info Weather="${weatherCode}" Temperature="${temp}"/>
+  </SK>
+</CityMeteor>`;
+
+    console.log(`Generated WeatherWidget current XML length: ${xml.length}`);
+    return xml;
   }
 
-  // WeatherWidget 预报 XML
+  // WeatherWidget 预报 XML - 兼容原WeatherWidget解析器
   private generateWeatherWidgetForecastXml(weatherData: WeatherData): string {
-    return this.generateForecastXml(weatherData, AppType.WEATHER_WIDGET);
+    console.log(
+      'Generating WeatherWidget forecast XML with data:',
+      weatherData
+    );
+
+    const forecast = weatherData.forecast || {
+      daily: [],
+      updateTime: new Date().toISOString(),
+    };
+    const daily = forecast.daily || [];
+    const city = this.extractCityInfo(weatherData);
+    const updateTime = this.formatUpdateTime(
+      forecast.updateTime || weatherData.updateTime
+    );
+    const cityName = city.name || 'Unknown';
+
+    // WeatherWidget期望的格式: CityMeteor > CF > Period (只取2天)
+    let xml = `${this.generateXmlHeader()}
+<CityMeteor CityName="${cityName}">
+  <CF ReportTime="${updateTime}">`;
+
+    // WeatherWidget只解析前2个Period
+    for (let i = 0; i < Math.min(daily.length, 2); i++) {
+      const day = daily[i];
+      const weatherCode = this.getWeatherCode(day.iconDay);
+      const week = this.getWeekNumber(day.fxDate);
+
+      xml += `
+    <Period Timestart="${day.fxDate} 00:00:00" Timeend="${day.fxDate} 23:59:59" Week="${week}" Weather="${weatherCode}" Tmin="${day.tempMin}" Tmax="${day.tempMax}"/>`;
+    }
+
+    xml += `
+  </CF>
+</CityMeteor>`;
+
+    console.log(`Generated WeatherWidget forecast XML length: ${xml.length}`);
+    return xml;
   }
 
   // 原有的生成方法（向后兼容）
