@@ -141,7 +141,7 @@ describe('PrismaCacheService', () => {
       const result = await prismaCacheService.getWeatherData('54511', 'zte');
 
       expect(prisma.weatherData.findUnique).toHaveBeenCalledWith({
-        where: { cityId_dataType: { cityId: '54511', dataType: 'zte' } },
+        where: { cityId_dataType_appType: { cityId: '54511', dataType: 'zte', appType: 'unknown' } },
       });
       expect(result).toEqual(mockWeatherData);
     });
@@ -198,7 +198,7 @@ describe('PrismaCacheService', () => {
       );
 
       expect(prisma.weatherData.upsert).toHaveBeenCalledWith({
-        where: { cityId_dataType: { cityId: '54511', dataType: 'zte' } },
+        where: { cityId_dataType_appType: { cityId: '54511', dataType: 'zte', appType: 'unknown' } },
         update: expect.objectContaining({
           xmlData: '<weather></weather>',
           timestamp: expect.any(BigInt),
@@ -208,6 +208,7 @@ describe('PrismaCacheService', () => {
         create: expect.objectContaining({
           cityId: '54511',
           dataType: 'zte',
+          appType: 'unknown',
           xmlData: '<weather></weather>',
           timestamp: expect.any(BigInt),
           expiresAt: expect.any(BigInt),

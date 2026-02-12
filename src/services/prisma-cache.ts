@@ -82,11 +82,12 @@ class PrismaCacheService {
   // 天气数据缓存
   async getWeatherData(
     cityId: string,
-    dataType: string
+    dataType: string,
+    appType: string = 'unknown'
   ): Promise<WeatherData | null> {
     try {
       const weatherData = await prisma.weatherData.findUnique({
-        where: { cityId_dataType: { cityId, dataType } },
+        where: { cityId_dataType_appType: { cityId, dataType, appType } },
       });
 
       // 检查缓存是否过期（使用时间戳比较）
@@ -109,14 +110,15 @@ class PrismaCacheService {
     cityId: string,
     dataType: string,
     xmlData: string,
-    expiresInMinutes: number
+    expiresInMinutes: number,
+    appType: string = 'unknown'
   ): Promise<WeatherData> {
     try {
       const timestamp = BigInt(Date.now());
       const expiresAt = timestamp + BigInt(expiresInMinutes * 60 * 1000);
 
       const weatherData = await prisma.weatherData.upsert({
-        where: { cityId_dataType: { cityId, dataType } },
+        where: { cityId_dataType_appType: { cityId, dataType, appType } },
         update: {
           xmlData,
           timestamp,
@@ -126,6 +128,7 @@ class PrismaCacheService {
         create: {
           cityId,
           dataType,
+          appType,
           xmlData,
           timestamp,
           expiresAt,
