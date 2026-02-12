@@ -23,6 +23,8 @@ class WeatherApi {
   private baseUrl: string;
   private jwtConfig: JwtConfig;
   private privateKey: string;
+  private readonly MAX_RETRIES = 1; // 最大重试次数
+  private readonly RETRY_DELAY = 500; // 重试延迟（毫秒）
 
   constructor() {
     // 构建基础URL，使用配置的API Host
@@ -43,6 +45,72 @@ class WeatherApi {
       console.error('Failed to read private key file:', error);
       throw new Error('Private key file not found or unreadable');
     }
+  }
+
+  // 带重试的请求方法
+  private async requestWithRetry<T>(
+    requestFn: () => Promise<T>,
+    validateFn: (data: T) => boolean,
+    operationName: string
+  ): Promise<T> {
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        console.log(
+          `${operationName} - Attempt ${attempt + 1}/${this.MAX_RETRIES + 1}`
+        );
+        const result = await requestFn();
+
+        // 检查数据是否完整
+        if (validateFn(result)) {
+          console.log(`${operationName} - Success on attempt ${attempt + 1}`);
+          return result;
+        }
+
+        console.log(
+          `${operationName} - Invalid data on attempt ${attempt + 1}, retrying...`
+        );
+      } catch (error) {
+        lastError = error as Error;
+        console.log(
+          `${operationName} - Failed on attempt ${attempt + 1}:`,
+          error
+        );
+
+        if (attempt < this.MAX_RETRIES) {
+          console.log(
+            `${operationName} - Waiting ${this.RETRY_DELAY}ms before retry...`
+          );
+          await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+        }
+      }
+    }
+
+    throw (
+      lastError || new Error(`${operationName} - All retry attempts failed`)
+    );
+  }
+
+  // 验证实时天气数据是否完整
+  private isValidNowWeather(data: any): boolean {
+    const isValid =
+      data &&
+      data.now &&
+      data.now.temp !== undefined &&
+      data.now.humidity !== undefined &&
+      data.now.pressure !== undefined &&
+      data.now.windDir !== undefined &&
+      data.now.windSpeed !== undefined &&
+      data.now.windScale !== undefined;
+
+    if (!isValid) {
+      console.log(
+        'Now weather data validation failed:',
+        JSON.stringify(data, null, 2)
+      );
+    }
+    return isValid;
   }
 
   // 生成JWT令牌
@@ -83,8 +151,12 @@ class WeatherApi {
       const cityId = cityInfo.location[0].id;
       console.log('Found city ID:', cityId);
 
-      // 2. 获取当前天气
-      const nowWeather = await this.getNowWeather(cityId);
+      // 2. 获取当前天气（带重试）
+      const nowWeather = await this.requestWithRetry(
+        () => this.getNowWeather(cityId),
+        data => this.isValidNowWeather(data),
+        'GetNowWeather'
+      );
 
       // 3. 获取天气预报
       const forecast = await this.getForecast(cityId);

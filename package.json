@@ -12,6 +12,7 @@
     "lint:fix": "eslint src --ext .ts,.js --fix",
     "lint:info": "eslint src --ext .ts,.js --max-warnings=0 --quiet",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "start": "node dist/server.js",
     "pm2:start": "pm2 start dist/server.js --name weather-proxy",
     "pm2:stop": "pm2 stop weather-proxy",
     "pm2:restart": "pm2 restart weather-proxy --update-env",

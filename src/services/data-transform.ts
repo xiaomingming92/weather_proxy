@@ -132,10 +132,16 @@ class DataTransform {
   private generateWeatherTVMainXml(weatherData: WeatherData): string {
     console.log('Generating WeatherTV main XML with data:', weatherData);
 
-    const nowData = weatherData.now || {
-      temp: '0',
-      icon: '100',
-      updateTime: new Date().toISOString(),
+    // 确保所有字段都有默认值
+    const nowData = {
+      temp: weatherData.now?.temp || '0',
+      icon: weatherData.now?.icon || '100',
+      humidity: weatherData.now?.humidity || '0',
+      pressure: weatherData.now?.pressure || '0',
+      windDir: weatherData.now?.windDir || '0',
+      windSpeed: weatherData.now?.windSpeed || '0',
+      windScale: weatherData.now?.windScale || '0',
+      updateTime: weatherData.now?.updateTime || new Date().toISOString(),
     };
     const forecast = weatherData.forecast || {
       daily: [],
@@ -175,29 +181,17 @@ class DataTransform {
     Sunset="${city.sunset || ''}" />`;
 
     // 2. SK 节点（实况）- Info 作为子节点
+    // 所有7个属性都必须存在：Weather, Temperature, WindDir, WindPower, WindSpeed, Humidity, Pressure
     xml += `
   <SK ReportTime="${updateTime}">
     <Info 
       Weather="${weatherCode}" 
-      Temperature="${temp}"`;
-
-    if (nowData.windDir)
-      xml += `
-      WindDir="${nowData.windDir}"`;
-    if (nowData.windScale)
-      xml += `
-      WindPower="${nowData.windScale}"`;
-    if (nowData.windSpeed)
-      xml += `
-      WindSpeed="${nowData.windSpeed}"`;
-    if (nowData.humidity)
-      xml += `
-      Humidity="${nowData.humidity}"`;
-    if (nowData.pressure)
-      xml += `
-      Pressure="${nowData.pressure}"`;
-
-    xml += `
+      Temperature="${temp}"
+      WindDir="${nowData.windDir}"
+      WindPower="${nowData.windScale}"
+      WindSpeed="${nowData.windSpeed}"
+      Humidity="${nowData.humidity}"
+      Pressure="${nowData.pressure}"
     />
   </SK>`;
 
@@ -225,23 +219,31 @@ class DataTransform {
     xml += `
   </CF>`;
 
-    // 4. ZU 节点（指数）- 使用 Period 包装
-    if (indicesData.length > 0) {
-      xml += `
-  <ZU ReportTime="${updateTime}">
-    <Period Timestart="${updateTime.split(' ')[0]} 00:00:00" Timeend="${updateTime.split(' ')[0]} 23:59:59">`;
+    // 4. ZU 节点（指数）- WeatherTV 期望直接包含 Type 子节点，不需要 Period 包装
+    // 始终生成 ZU 节点，即使没有指数数据也使用默认值
+    xml += `
+  <ZU ReportTime="${updateTime}">`;
 
+    if (indicesData.length > 0) {
+      // 使用实际的指数数据
       for (const index of indicesData) {
         const typeName = this.getZuTypeCode(index.type);
         const typeVal = this.getZuTypeLevel(index.category);
         xml += `
-      <Type Name="${typeName}" Val="${typeVal}">${index.text || index.name}</Type>`;
+    <Type Name="${typeName}" Val="${typeVal}">${index.text || index.name}</Type>`;
       }
-
+    } else {
+      // 使用默认指数数据，确保 ZU 节点不为空
       xml += `
-    </Period>
-  </ZU>`;
+    <Type Name="GM" Val="1">各项气象条件适宜，发生感冒机率较低。</Type>
+    <Type Name="CY" Val="3">建议穿薄型T恤衫。</Type>
+    <Type Name="XC" Val="4">不宜洗车。</Type>
+    <Type Name="ZWX" Val="2">紫外线强度较弱。</Type>
+    <Type Name="YD" Val="3">较不宜运动。</Type>`;
     }
+
+    xml += `
+  </ZU>`;
 
     // 5. CF3h 节点（3小时预报）- 使用 Period 标签
     if (hourlyData.length > 0) {

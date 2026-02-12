@@ -11,9 +11,9 @@ StationInfo Latitude , Longitude , Postcode , Sunrise , Sunset , Stationid 站�
 CF ReportTime 天气预报开始 
 Period (CF内) Timestart , Timeend , Weather , WindDir , WindPower , Tmin , Tmax , Week 预报时段 
 SK ReportTime 实况天气开始 
-Info (SK内) Weather , Temperature , WindDir , WindPower , WindSpeed , Humidity , Pressure 实况详情 
+Info (SK内) **Weather** , **Temperature** , **WindDir** , **WindPower** , **WindSpeed** , **Humidity** , **Pressure** 实况详情（7个属性全部必需）
 ZU ReportTime 指数预报开始 
-Type (ZU内) Name , Val 指数类型 
+Type (ZU内) **Name** , **Val** 指数类型（ZU 直接包含 Type 子节点，不需要 Period 包装） 
 CF3h ReportTime 3小时预报开始 
 Period (CF3h内) Timestart , Timeend , Weather , WindDir , WindPower 3小时时段 
 AdvFile - 广告文件
@@ -514,9 +514,30 @@ XML 响应格式 :
 1. 1500 字符长度要求 （ Network.smali L354 ）：
    
 ```smali
-  const/16 v9, 0x5dc  # 1500
-  if-ge v8, v9, :cond_0
-  const-string v7, "err:length"
+  const/16 v9, 0x5dc  # 1500
+  if-ge v8, v9, :cond_0
+  const-string v7, "err:length"
 ```
 2. 示例文件 newdata.xml 实际长度 : 2107 字符
+
+3. **SK 节点 Info 属性要求**（CityDataHandler.smali L715-787）：
+   - 所有 7 个属性都是**必需**的：Weather, Temperature, WindDir, WindPower, WindSpeed, Humidity, Pressure
+   - 缺少任何一个属性都会导致解析后数据不完整
+
+4. **ZU 节点结构要求**（CityDataHandler.smali L636-665, L794-838）：
+   - ZU 节点**直接包含** Type 子节点，**不需要** Period 包装
+   - 每个 Type 必须有 Name 和 Val 属性
+   - ZU 节点必须始终存在，否则点击"指数"按钮会导致 FC
+
+5. **和风天气 API 字段映射**：
+   | 和风天气字段 | WeatherTV 属性 | 说明 |
+   |-------------|---------------|------|
+   | `temp` | `Temperature` | 温度 |
+   | `icon` | `Weather` | 天气图标代码（需要转换） |
+   | `humidity` | `Humidity` | 相对湿度 |
+   | `pressure` | `Pressure` | 大气压强 |
+   | `windDir` | `WindDir` | 风向 |
+   | `windSpeed` | `WindSpeed` | 风速 |
+   | `windScale` | `WindPower` | 风力等级 |
+
 以上是对 WeatherTV_V880+ 逆向代码中所有 XML 解析相关组件的完整分析

@@ -11,7 +11,7 @@ import weatherApi from '../services/weather-api.js';
 import dataTransform from '../services/data-transform.js';
 import cache from '../services/cache.js';
 import prismaCache from '../services/prisma-cache.js';
-import { AppType } from '../types/index.js';
+import { AppType, WeatherData } from '../types/index.js';
 
 const router = express.Router();
 
@@ -118,10 +118,45 @@ async function handleWeatherRequest(
     return;
   }
 
-  // 调用和风天气API
+  // 调用和风天气API（带重试机制，失败时返回默认值）
   console.log('Calling weather API for', locationParam);
-  const weatherData = await weatherApi.getWeather(locationParam);
-  console.log('Weather API response received');
+  let weatherData: WeatherData;
+  try {
+    weatherData = await weatherApi.getWeather(locationParam);
+    console.log('Weather API response received successfully');
+  } catch (error) {
+    console.error('Weather API failed after retries:', error);
+    // 返回默认数据，避免客户端FC
+    weatherData = {
+      now: {
+        temp: '0',
+        icon: '100',
+        humidity: '0',
+        pressure: '0',
+        windDir: '0',
+        windSpeed: '0',
+        windScale: '0',
+        updateTime: new Date().toISOString(),
+      },
+      forecast: {
+        daily: [],
+        updateTime: new Date().toISOString(),
+      },
+      hourly: {
+        hourly: [],
+        updateTime: new Date().toISOString(),
+      },
+      indices: {
+        daily: [],
+        updateTime: new Date().toISOString(),
+      },
+      city: {
+        id: actualCityId,
+        name: locationParam,
+      },
+    };
+    console.log('Using default weather data');
+  }
 
   // 转换数据格式
   console.log('Transforming data for', dataType, 'and app type', appType);
