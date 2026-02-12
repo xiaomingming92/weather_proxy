@@ -14,7 +14,10 @@
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "pm2:start": "pm2 start dist/server.js --name weather-proxy",
     "pm2:stop": "pm2 stop weather-proxy",
-    "pm2:restart": "pm2 restart weather-proxy --update-env"
+    "pm2:restart": "pm2 restart weather-proxy --update-env",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.3.0",
@@ -38,6 +41,7 @@
     "@types/node-jose": "^1.1.13",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "commitlint": "^20.4.1",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -47,7 +51,8 @@
     "prettier": "^3.8.1",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.6.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": "^24.11.0"

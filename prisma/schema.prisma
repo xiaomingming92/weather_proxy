@@ -17,10 +17,19 @@ model City {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   cityId    String   @unique
-  createdAt BigInt
-  updatedAt BigInt
   
-  // 关联到天气数据
+  // 站点信息（WeatherTV 需要）
+  stationId   String?
+  longitude   String?
+  latitude    String?
+  postcode    String?
+  
+  // 时间信息
+  sunrise     String?
+  sunset      String?
+  
+  createdAt   BigInt
+  updatedAt   BigInt
   weatherData WeatherData[]
 }
 
@@ -28,10 +37,12 @@ model WeatherData {
   id           Int      @id @default(autoincrement())
   cityId       String
   dataType     String
-  xmlData      String @db.Text
+  appType      String   @default("unknown")
+  xmlData      String   @db.Text
   timestamp    BigInt
   timezone     String   @default("Asia/Shanghai")
   expiresAt    BigInt
+  cacheDuration Int     @default(30)
   createdAt    BigInt
   updatedAt    BigInt
   
@@ -39,7 +50,19 @@ model WeatherData {
   city         City?    @relation(fields: [cityId], references: [cityId])
   
   // 复合唯一索引
-  @@unique([cityId, dataType])
+  @@unique([cityId, dataType, appType])
+  @@index([expiresAt])
+  @@index([appType, dataType])
+}
+
+model CachePolicy {
+  id          Int      @id @default(autoincrement())
+  dataType    String   @unique
+  appType     String
+  duration    Int
+  description String?
+  createdAt   BigInt
+  updatedAt   BigInt
 }
 
 model CacheConfig {

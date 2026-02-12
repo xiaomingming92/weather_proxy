@@ -1,0 +1,441 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import prismaCacheService from './prisma-cache.js';
+
+// Mock the database module
+vi.mock('../config/database.js', () => ({
+  default: {
+    city: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+      findMany: vi.fn(),
+    },
+    weatherData: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+      deleteMany: vi.fn(),
+      findMany: vi.fn(),
+    },
+    cacheConfig: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
+    },
+    $disconnect: vi.fn(),
+  },
+}));
+
+import prisma from '../config/database.js';
+
+describe('PrismaCacheService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('City Operations', () => {
+    it('should get city by name', async () => {
+      const mockCity = {
+        id: 1,
+        name: '北京',
+        cityId: '54511',
+        createdAt: BigInt(1704067200000),
+        updatedAt: BigInt(1704067200000),
+      };
+      vi.mocked(prisma.city.findUnique).mockResolvedValue(mockCity);
+
+      const result = await prismaCacheService.getCityByName('北京');
+
+      expect(prisma.city.findUnique).toHaveBeenCalledWith({
+        where: { name: '北京' },
+      });
+      expect(result).toEqual(mockCity);
+    });
+
+    it('should return null when city not found by name', async () => {
+      vi.mocked(prisma.city.findUnique).mockResolvedValue(null);
+
+      const result = await prismaCacheService.getCityByName('Unknown');
+
+      expect(result).toBeNull();
+    });
+
+    it('should get city by id', async () => {
+      const mockCity = {
+        id: 1,
+        name: '北京',
+        cityId: '54511',
+        createdAt: BigInt(1704067200000),
+        updatedAt: BigInt(1704067200000),
+      };
+      vi.mocked(prisma.city.findUnique).mockResolvedValue(mockCity);
+
+      const result = await prismaCacheService.getCityById('54511');
+
+      expect(prisma.city.findUnique).toHaveBeenCalledWith({
+        where: { cityId: '54511' },
+      });
+      expect(result).toEqual(mockCity);
+    });
+
+    it('should create or update city', async () => {
+      const mockCity = {
+        id: 1,
+        name: '北京',
+        cityId: '54511',
+        createdAt: BigInt(1704067200000),
+        updatedAt: BigInt(1704067200000),
+      };
+      vi.mocked(prisma.city.upsert).mockResolvedValue(mockCity);
+
+      const result = await prismaCacheService.createCity('北京', '54511');
+
+      expect(prisma.city.upsert).toHaveBeenCalledWith({
+        where: { name: '北京' },
+        update: expect.objectContaining({
+          cityId: '54511',
+          updatedAt: expect.any(BigInt),
+        }),
+        create: expect.objectContaining({
+          name: '北京',
+          cityId: '54511',
+          createdAt: expect.any(BigInt),
+          updatedAt: expect.any(BigInt),
+        }),
+      });
+      expect(result).toEqual(mockCity);
+    });
+
+    it('should handle error when getting city by name', async () => {
+      vi.mocked(prisma.city.findUnique).mockRejectedValue(
+        new Error('DB Error')
+      );
+
+      const result = await prismaCacheService.getCityByName('北京');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('Weather Data Operations', () => {
+    it('should get weather data when not expired', async () => {
+      const futureTimestamp = BigInt(Date.now() + 3600000); // 1 hour from now
+      const mockWeatherData = {
+        id: 1,
+        cityId: '54511',
+        dataType: 'zte',
+        xmlData: '<weather></weather>',
+        timestamp: BigInt(Date.now()),
+        timezone: 'Asia/Shanghai',
+        expiresAt: futureTimestamp,
+        createdAt: BigInt(Date.now()),
+        updatedAt: BigInt(Date.now()),
+      };
+      vi.mocked(prisma.weatherData.findUnique).mockResolvedValue(
+        mockWeatherData
+      );
+
+      const result = await prismaCacheService.getWeatherData('54511', 'zte');
+
+      expect(prisma.weatherData.findUnique).toHaveBeenCalledWith({
+        where: { cityId_dataType: { cityId: '54511', dataType: 'zte' } },
+      });
+      expect(result).toEqual(mockWeatherData);
+    });
+
+    it('should return null when weather data is expired', async () => {
+      const pastTimestamp = BigInt(Date.now() - 3600000); // 1 hour ago
+      const mockWeatherData = {
+        id: 1,
+        cityId: '54511',
+        dataType: 'zte',
+        xmlData: '<weather></weather>',
+        timestamp: BigInt(Date.now() - 7200000),
+        timezone: 'Asia/Shanghai',
+        expiresAt: pastTimestamp,
+        createdAt: BigInt(Date.now() - 7200000),
+        updatedAt: BigInt(Date.now() - 7200000),
+      };
+      vi.mocked(prisma.weatherData.findUnique).mockResolvedValue(
+        mockWeatherData
+      );
+
+      const result = await prismaCacheService.getWeatherData('54511', 'zte');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when weather data not found', async () => {
+      vi.mocked(prisma.weatherData.findUnique).mockResolvedValue(null);
+
+      const result = await prismaCacheService.getWeatherData('54511', 'zte');
+
+      expect(result).toBeNull();
+    });
+
+    it('should create or update weather data', async () => {
+      const mockWeatherData = {
+        id: 1,
+        cityId: '54511',
+        dataType: 'zte',
+        xmlData: '<weather></weather>',
+        timestamp: BigInt(Date.now()),
+        timezone: 'Asia/Shanghai',
+        expiresAt: BigInt(Date.now() + 1800000),
+        createdAt: BigInt(Date.now()),
+        updatedAt: BigInt(Date.now()),
+      };
+      vi.mocked(prisma.weatherData.upsert).mockResolvedValue(mockWeatherData);
+
+      const result = await prismaCacheService.createOrUpdateWeatherData(
+        '54511',
+        'zte',
+        '<weather></weather>',
+        30
+      );
+
+      expect(prisma.weatherData.upsert).toHaveBeenCalledWith({
+        where: { cityId_dataType: { cityId: '54511', dataType: 'zte' } },
+        update: expect.objectContaining({
+          xmlData: '<weather></weather>',
+          timestamp: expect.any(BigInt),
+          expiresAt: expect.any(BigInt),
+          updatedAt: expect.any(BigInt),
+        }),
+        create: expect.objectContaining({
+          cityId: '54511',
+          dataType: 'zte',
+          xmlData: '<weather></weather>',
+          timestamp: expect.any(BigInt),
+          expiresAt: expect.any(BigInt),
+          createdAt: expect.any(BigInt),
+          updatedAt: expect.any(BigInt),
+        }),
+      });
+      expect(result).toEqual(mockWeatherData);
+    });
+
+    it('should handle error when getting weather data', async () => {
+      vi.mocked(prisma.weatherData.findUnique).mockRejectedValue(
+        new Error('DB Error')
+      );
+
+      const result = await prismaCacheService.getWeatherData('54511', 'zte');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('Cache Config Operations', () => {
+    it('should get cache config', async () => {
+      const mockConfig = {
+        id: 1,
+        key: 'realtime_cache_duration',
+        value: '3',
+        description: '实时查询缓存时间（分钟）',
+        createdAt: BigInt(1704067200000),
+        updatedAt: BigInt(1704067200000),
+      };
+      vi.mocked(prisma.cacheConfig.findUnique).mockResolvedValue(mockConfig);
+
+      const result = await prismaCacheService.getCacheConfig(
+        'realtime_cache_duration'
+      );
+
+      expect(prisma.cacheConfig.findUnique).toHaveBeenCalledWith({
+        where: { key: 'realtime_cache_duration' },
+      });
+      expect(result).toEqual(mockConfig);
+    });
+
+    it('should set cache config', async () => {
+      const mockConfig = {
+        id: 1,
+        key: 'realtime_cache_duration',
+        value: '5',
+        description: '实时查询缓存时间（分钟）',
+        createdAt: BigInt(1704067200000),
+        updatedAt: BigInt(Date.now()),
+      };
+      vi.mocked(prisma.cacheConfig.upsert).mockResolvedValue(mockConfig);
+
+      const result = await prismaCacheService.setCacheConfig(
+        'realtime_cache_duration',
+        '5',
+        '实时查询缓存时间（分钟）'
+      );
+
+      expect(prisma.cacheConfig.upsert).toHaveBeenCalledWith({
+        where: { key: 'realtime_cache_duration' },
+        update: expect.objectContaining({
+          value: '5',
+          description: '实时查询缓存时间（分钟）',
+          updatedAt: expect.any(BigInt),
+        }),
+        create: expect.objectContaining({
+          key: 'realtime_cache_duration',
+          value: '5',
+          description: '实时查询缓存时间（分钟）',
+          createdAt: expect.any(BigInt),
+          updatedAt: expect.any(BigInt),
+        }),
+      });
+      expect(result).toEqual(mockConfig);
+    });
+
+    it('should get all cache configs', async () => {
+      const mockConfigs = [
+        {
+          id: 1,
+          key: 'realtime_cache_duration',
+          value: '3',
+          description: null,
+          createdAt: BigInt(1704067200000),
+          updatedAt: BigInt(1704067200000),
+        },
+      ];
+      vi.mocked(prisma.cacheConfig.findMany).mockResolvedValue(mockConfigs);
+
+      const result = await prismaCacheService.getAllCacheConfigs();
+
+      expect(prisma.cacheConfig.findMany).toHaveBeenCalled();
+      expect(result).toEqual(mockConfigs);
+    });
+
+    it('should delete cache config', async () => {
+      vi.mocked(prisma.cacheConfig.delete).mockResolvedValue({} as any);
+
+      await prismaCacheService.deleteCacheConfig('realtime_cache_duration');
+
+      expect(prisma.cacheConfig.delete).toHaveBeenCalledWith({
+        where: { key: 'realtime_cache_duration' },
+      });
+    });
+  });
+
+  describe('Cache Duration', () => {
+    it('should return realtime cache duration for ztev3widgetskall', async () => {
+      const mockConfig = {
+        id: 1,
+        key: 'realtime_cache_duration',
+        value: '3',
+        description: null,
+        createdAt: BigInt(1704067200000),
+        updatedAt: BigInt(1704067200000),
+      };
+      vi.mocked(prisma.cacheConfig.findUnique).mockResolvedValue(mockConfig);
+
+      const result =
+        await prismaCacheService.getCacheDuration('ztev3widgetskall');
+
+      expect(result).toBe(3);
+    });
+
+    it('should return forecast cache duration for ztewidgetcf', async () => {
+      const mockConfig = {
+        id: 1,
+        key: 'forecast_cache_duration',
+        value: '720',
+        description: null,
+        createdAt: BigInt(1704067200000),
+        updatedAt: BigInt(1704067200000),
+      };
+      vi.mocked(prisma.cacheConfig.findUnique).mockResolvedValue(mockConfig);
+
+      const result = await prismaCacheService.getCacheDuration('ztewidgetcf');
+
+      expect(result).toBe(720);
+    });
+
+    it('should return default cache duration for unknown data type', async () => {
+      const result = await prismaCacheService.getCacheDuration('unknown');
+
+      expect(result).toBe(10);
+    });
+
+    it('should return default duration when config not found', async () => {
+      vi.mocked(prisma.cacheConfig.findUnique).mockResolvedValue(null);
+
+      const result =
+        await prismaCacheService.getCacheDuration('ztev3widgetskall');
+
+      expect(result).toBe(3);
+    });
+  });
+
+  describe('Cleanup Operations', () => {
+    it('should cleanup expired cache', async () => {
+      vi.mocked(prisma.weatherData.deleteMany).mockResolvedValue({
+        count: 5,
+      } as any);
+
+      await prismaCacheService.cleanupExpiredCache();
+
+      expect(prisma.weatherData.deleteMany).toHaveBeenCalledWith({
+        where: {
+          expiresAt: { lte: expect.any(BigInt) },
+        },
+      });
+    });
+
+    it('should close prisma connection', async () => {
+      vi.mocked(prisma.$disconnect).mockResolvedValue(undefined);
+
+      await prismaCacheService.close();
+
+      expect(prisma.$disconnect).toHaveBeenCalled();
+    });
+  });
+
+  describe('Cities with Forecast Cache', () => {
+    it('should get cities with forecast cache', async () => {
+      const mockWeatherData = [{ cityId: '54511' }, { cityId: '58367' }];
+      const mockCities = [
+        {
+          id: 1,
+          name: '北京',
+          cityId: '54511',
+          createdAt: BigInt(0),
+          updatedAt: BigInt(0),
+        },
+        {
+          id: 2,
+          name: '上海',
+          cityId: '58367',
+          createdAt: BigInt(0),
+          updatedAt: BigInt(0),
+        },
+      ];
+
+      vi.mocked(prisma.weatherData.findMany).mockResolvedValue(
+        mockWeatherData as any
+      );
+      vi.mocked(prisma.city.findUnique)
+        .mockResolvedValueOnce(mockCities[0])
+        .mockResolvedValueOnce(mockCities[1]);
+
+      const result = await prismaCacheService.getCitiesWithForecastCache();
+
+      expect(prisma.weatherData.findMany).toHaveBeenCalledWith({
+        where: {
+          dataType: 'ztewidgetcf',
+          expiresAt: { gt: expect.any(BigInt) },
+        },
+        select: { cityId: true },
+        distinct: ['cityId'],
+      });
+      expect(result).toEqual(mockCities);
+    });
+
+    it('should return empty array when no cities have forecast cache', async () => {
+      vi.mocked(prisma.weatherData.findMany).mockResolvedValue([]);
+
+      const result = await prismaCacheService.getCitiesWithForecastCache();
+
+      expect(result).toEqual([]);
+    });
+  });
+});

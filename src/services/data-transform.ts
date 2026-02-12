@@ -70,22 +70,294 @@ class DataTransform {
     dataType: string,
     appType: AppType = AppType.UNKNOWN
   ): string {
+    // 根据应用类型和数据类型选择对应的生成方法
+    if (appType === AppType.WEATHER_TV) {
+      return this.generateWeatherTVXml(weatherData, dataType);
+    } else if (appType === AppType.WEATHER_WIDGET) {
+      return this.generateWeatherWidgetXml(weatherData, dataType);
+    }
+
+    // 默认使用旧的逻辑（向后兼容）
     if (
       dataType === DataType.CURRENT_WEATHER_V3 ||
-      dataType === DataType.CURRENT_WEATHER
+      dataType === DataType.WIDGET_SK
     ) {
       return this.generateCurrentWeatherXml(weatherData, appType);
     } else if (
-      dataType === DataType.FORECAST_WEATHER ||
+      dataType === DataType.WIDGET_CF ||
       dataType === DataType.FORECAST_WEATHER_V3
     ) {
       return this.generateForecastXml(weatherData, appType);
-    } else if (dataType === DataType.ZTE) {
+    } else if (dataType === DataType.MAIN_DATA) {
       return this.generateZteXml(weatherData, appType);
     }
     return '<error>Invalid dataType</error>';
   }
 
+  // WeatherTV XML 生成
+  private generateWeatherTVXml(
+    weatherData: WeatherData,
+    dataType: string
+  ): string {
+    switch (dataType) {
+      case DataType.MAIN_DATA:
+        return this.generateWeatherTVMainXml(weatherData);
+      case DataType.WIDGET_SK:
+        return this.generateWeatherTVWidgetSKXml(weatherData);
+      case DataType.WIDGET_CF:
+        return this.generateWeatherTVWidgetCFXml(weatherData);
+      case DataType.CITY_LIST:
+        return this.generateCityListXml(weatherData);
+      default:
+        return '<error>Invalid WeatherTV dataType</error>';
+    }
+  }
+
+  // WeatherWidget XML 生成
+  private generateWeatherWidgetXml(
+    weatherData: WeatherData,
+    dataType: string
+  ): string {
+    switch (dataType) {
+      case DataType.CURRENT_WEATHER_V3:
+        return this.generateWeatherWidgetCurrentXml(weatherData);
+      case DataType.FORECAST_WEATHER_V3:
+        return this.generateWeatherWidgetForecastXml(weatherData);
+      default:
+        return '<error>Invalid WeatherWidget dataType</error>';
+    }
+  }
+
+  // WeatherTV 主天气数据 XML（dataType=zte）
+  private generateWeatherTVMainXml(weatherData: WeatherData): string {
+    console.log('Generating WeatherTV main XML with data:', weatherData);
+
+    const nowData = weatherData.now || {
+      temp: '0',
+      icon: '100',
+      updateTime: new Date().toISOString(),
+    };
+    const forecast = weatherData.forecast || {
+      daily: [],
+      updateTime: new Date().toISOString(),
+    };
+    const daily = forecast.daily || [];
+    const hourly = weatherData.hourly || {
+      hourly: [],
+      updateTime: new Date().toISOString(),
+    };
+    const hourlyData = hourly.hourly || [];
+    const indices = weatherData.indices || {
+      daily: [],
+      updateTime: new Date().toISOString(),
+    };
+    const indicesData = indices.daily || [];
+    const city = this.extractCityInfo(weatherData);
+    const updateTime = this.formatUpdateTime(
+      nowData.updateTime || weatherData.updateTime
+    );
+
+    const temp = nowData.temp || '0';
+    const weatherCode = this.getWeatherCode(nowData.icon);
+    const cityName = city.name || 'Unknown';
+
+    let xml = `${this.generateXmlHeader()}
+<CityMeteor CityName="${cityName}">`;
+
+    // 1. StationInfo 节点
+    xml += `
+  <StationInfo 
+    Stationid="${city.stationId || city.id || '0'}" 
+    Longitude="${city.longitude || '0'}" 
+    Latitude="${city.latitude || '0'}" 
+    Postcode="${city.postcode || ''}" 
+    Sunrise="${city.sunrise || ''}" 
+    Sunset="${city.sunset || ''}" />`;
+
+    // 2. SK 节点（实况）- Info 作为子节点
+    xml += `
+  <SK ReportTime="${updateTime}">
+    <Info 
+      Weather="${weatherCode}" 
+      Temperature="${temp}"`;
+
+    if (nowData.windDir)
+      xml += `
+      WindDir="${nowData.windDir}"`;
+    if (nowData.windScale)
+      xml += `
+      WindPower="${nowData.windScale}"`;
+    if (nowData.windSpeed)
+      xml += `
+      WindSpeed="${nowData.windSpeed}"`;
+    if (nowData.humidity)
+      xml += `
+      Humidity="${nowData.humidity}"`;
+    if (nowData.pressure)
+      xml += `
+      Pressure="${nowData.pressure}"`;
+
+    xml += `
+    />
+  </SK>`;
+
+    // 3. CF 节点（预报）
+    xml += `
+  <CF ReportTime="${updateTime}">`;
+
+    for (let i = 0; i < daily.length && i < 7; i++) {
+      const day = daily[i];
+      const dayWeatherCode = this.getWeatherCode(day.iconDay);
+      const week = this.getWeekNumber(day.fxDate);
+
+      xml += `
+    <Period 
+      Timestart="${day.fxDate} 00:00:00" 
+      Timeend="${day.fxDate} 23:59:59" 
+      Weather="${dayWeatherCode}" 
+      Tmin="${day.tempMin}" 
+      Tmax="${day.tempMax}" 
+      WindDir="${day.windDirDay || '0'}" 
+      WindPower="${day.windScaleDay || '0'}" 
+      Week="${week}" />`;
+    }
+
+    xml += `
+  </CF>`;
+
+    // 4. ZU 节点（指数）- 使用 Period 包装
+    if (indicesData.length > 0) {
+      xml += `
+  <ZU ReportTime="${updateTime}">
+    <Period Timestart="${updateTime.split(' ')[0]} 00:00:00" Timeend="${updateTime.split(' ')[0]} 23:59:59">`;
+
+      for (const index of indicesData) {
+        const typeName = this.getZuTypeCode(index.type);
+        const typeVal = this.getZuTypeLevel(index.category);
+        xml += `
+      <Type Name="${typeName}" Val="${typeVal}">${index.text || index.name}</Type>`;
+      }
+
+      xml += `
+    </Period>
+  </ZU>`;
+    }
+
+    // 5. CF3h 节点（3小时预报）- 使用 Period 标签
+    if (hourlyData.length > 0) {
+      xml += `
+  <CF3h ReportTime="${updateTime}">`;
+
+      for (let i = 0; i < hourlyData.length && i < 24; i += 3) {
+        const hour = hourlyData[i];
+        const hourWeatherCode = this.getWeatherCode(hour.icon);
+        const fxTime = hour.fxTime.replace('T', ' ').replace('Z', '');
+
+        xml += `
+    <Period 
+      Timestart="${fxTime}" 
+      Timeend="${fxTime}" 
+      Weather="${hourWeatherCode}" 
+      WindDir="${hour.windDir || '0'}" 
+      WindPower="${hour.windScale || '0'}" />`;
+      }
+
+      xml += `
+  </CF3h>`;
+    }
+
+    // 6. AdvFile 节点（广告）
+    const adv = weatherData.advertisement || {
+      cfFlag: '1',
+      skFlag: '1',
+      zuFlag: '1',
+    };
+    xml += `
+  <AdvFile>
+    <Adv Type="CF" Flag="${adv.cfFlag || '1'}" />
+    <Adv Type="SK" Flag="${adv.skFlag || '1'}" />
+    <Adv Type="ZU" Flag="${adv.zuFlag || '1'}" />
+  </AdvFile>`;
+
+    xml += `
+</CityMeteor>`;
+
+    console.log(`Generated WeatherTV XML length: ${xml.length}`);
+    return xml;
+  }
+
+  // WeatherTV Widget 实况 XML（dataType=ztewidgetsk）
+  private generateWeatherTVWidgetSKXml(weatherData: WeatherData): string {
+    const nowData = weatherData.now || {
+      temp: '0',
+      icon: '100',
+      updateTime: new Date().toISOString(),
+    };
+    const city = this.extractCityInfo(weatherData);
+    const updateTime = this.formatUpdateTime(nowData.updateTime);
+    const weatherCode = this.getWeatherCode(nowData.icon);
+
+    return `${this.generateXmlHeader()}
+<CityMeteor CityName="${city.name || 'Unknown'}">
+  <SK ReportTime="${updateTime}">
+    <Info Weather="${weatherCode}" Temperature="${nowData.temp || '0'}" />
+  </SK>
+</CityMeteor>`;
+  }
+
+  // WeatherTV Widget 预报 XML（dataType=ztewidgetcf）
+  private generateWeatherTVWidgetCFXml(weatherData: WeatherData): string {
+    const forecast = weatherData.forecast || {
+      daily: [],
+      updateTime: new Date().toISOString(),
+    };
+    const daily = forecast.daily || [];
+    const city = this.extractCityInfo(weatherData);
+    const updateTime = this.formatUpdateTime(forecast.updateTime);
+
+    let xml = `${this.generateXmlHeader()}
+<CityMeteor CityName="${city.name || 'Unknown'}">
+  <CF ReportTime="${updateTime}">`;
+
+    for (const day of daily.slice(0, 7)) {
+      const weatherCode = this.getWeatherCode(day.iconDay);
+      xml += `
+    <Period 
+      Timestart="${day.fxDate} 00:00:00" 
+      Timeend="${day.fxDate} 23:59:59" 
+      Tmax="${day.tempMax}" 
+      Tmin="${day.tempMin}" 
+      Weather="${weatherCode}" />`;
+    }
+
+    xml += `
+  </CF>
+</CityMeteor>`;
+
+    return xml;
+  }
+
+  // 城市列表 XML（flag=allcity）
+  private generateCityListXml(weatherData: WeatherData): string {
+    // 这里需要实际的城市列表数据
+    // 暂时返回空结构
+    return `${this.generateXmlHeader()}
+<CityList>
+  <!-- 城市列表数据 -->
+</CityList>`;
+  }
+
+  // WeatherWidget 当前天气 XML
+  private generateWeatherWidgetCurrentXml(weatherData: WeatherData): string {
+    return this.generateCurrentWeatherXml(weatherData, AppType.WEATHER_WIDGET);
+  }
+
+  // WeatherWidget 预报 XML
+  private generateWeatherWidgetForecastXml(weatherData: WeatherData): string {
+    return this.generateForecastXml(weatherData, AppType.WEATHER_WIDGET);
+  }
+
+  // 原有的生成方法（向后兼容）
   private generateCurrentWeatherXml(
     weatherData: WeatherData,
     appType: AppType
@@ -99,16 +371,6 @@ class DataTransform {
       temp: '0',
       icon: '100',
       updateTime: new Date().toISOString(),
-      humidity: '0',
-      pressure: '0',
-      windSpeed: '0',
-      windDir: '0',
-      vis: '0',
-      feelsLike: '0',
-      dew: '0',
-      cloud: '0',
-      precip: '0',
-      uvIndex: '0',
     };
     const city = this.extractCityInfo(weatherData);
     const updateTime = this.formatUpdateTime(
@@ -119,63 +381,13 @@ class DataTransform {
     const weatherCode = this.getWeatherCode(nowData.icon);
     const cityName = city.name || 'Unknown';
 
-    console.log('Generated XML data:', {
-      cityName,
-      temp,
-      weatherCode,
-      updateTime,
-    });
-
-    // 基础XML结构
-    let xml = `${this.generateXmlHeader()}
+    const xml = `${this.generateXmlHeader()}
 <weather>
   <city>${cityName}</city>
   <temp>${temp}</temp>
   <weather>${weatherCode}</weather>
-  <reporttime>${updateTime}</reporttime>`;
-
-    // 为WeatherTV应用添加额外数据，确保长度不低于1500
-    if (appType === AppType.WEATHER_TV) {
-      // 添加额外的天气数据字段
-      xml += `
-  <humidity>${nowData.humidity || '0'}</humidity>
-  <pressure>${nowData.pressure || '0'}</pressure>
-  <windSpeed>${nowData.windSpeed || '0'}</windSpeed>
-  <windDir>${nowData.windDir || '0'}</windDir>
-  <visibility>${nowData.vis || '0'}</visibility>
-  <feelsLike>${nowData.feelsLike || '0'}</feelsLike>
-  <dewPoint>${nowData.dew || '0'}</dewPoint>
-  <cloud>${nowData.cloud || '0'}</cloud>
-  <precip>${nowData.precip || '0'}</precip>
-  <uvIndex>${nowData.uvIndex || '0'}</uvIndex>`;
-
-      // 添加额外的有意义字段来增加长度
-      if (nowData) {
-        xml += `
-  <AdditionalData>
-    <Source>qweather</Source>
-    <UpdateTime>${updateTime}</UpdateTime>
-    <CityId>${city.id}</CityId>
-    <OriginalWeatherCode>${nowData.icon || ''}</OriginalWeatherCode>
-    <Humidity>${nowData.humidity || ''}</Humidity>
-    <Pressure>${nowData.pressure || ''}</Pressure>
-    <WindSpeed>${nowData.windSpeed || ''}</WindSpeed>
-    <WindDir>${nowData.windDir || ''}</WindDir>
-    <Visibility>${nowData.vis || ''}</Visibility>
-    <FeelsLike>${nowData.feelsLike || ''}</FeelsLike>
-    <DewPoint>${nowData.dew || ''}</DewPoint>
-    <Cloud>${nowData.cloud || ''}</Cloud>
-    <Precip>${nowData.precip || ''}</Precip>
-    <UVIndex>${nowData.uvIndex || ''}</UVIndex>
-  </AdditionalData>`;
-      }
-    }
-
-    xml += `
+  <reporttime>${updateTime}</reporttime>
 </weather>`;
-
-    // 确保长度不低于1500
-    xml = this.addLengthPadding(xml, appType);
 
     console.log(`Generated XML length: ${xml.length}`);
     return xml;
@@ -206,9 +418,8 @@ class DataTransform {
   <city>${cityName}</city>
   <reporttime>${updateTime}</reporttime>`;
 
-    // 生成两天的预报数据，与WeatherWidget期望的结构匹配
+    // 生成两天的预报数据
     if (daily.length > 0) {
-      // 第一天预报
       const day1 = daily[0];
       forecastXml += `
   <startTime1>${day1.fxDate} 00:00:00</startTime1>
@@ -220,7 +431,6 @@ class DataTransform {
     }
 
     if (daily.length > 1) {
-      // 第二天预报
       const day2 = daily[1];
       forecastXml += `
   <startTime2>${day2.fxDate} 00:00:00</startTime2>
@@ -231,79 +441,61 @@ class DataTransform {
   <tempMax2>${day2.tempMax}</tempMax2>`;
     }
 
-    // 为WeatherTV应用添加额外数据，确保长度不低于1500
-    if (appType === AppType.WEATHER_TV) {
-      // 添加额外的预报数据字段
-      for (let i = 0; i < daily.length && i < 7; i++) {
-        const day = daily[i];
-        forecastXml += `
-  <startTime${i + 1}>${day.fxDate} 00:00:00</startTime${i + 1}>
-  <endTime${i + 1}>${day.fxDate} 23:59:59</endTime${i + 1}>
-  <week${i + 1}>${this.getWeekday(day.fxDate)}</week${i + 1}>
-  <condition${i + 1}>${this.getWeatherCode(day.iconDay)}</condition${i + 1}>
-  <tempMin${i + 1}>${day.tempMin}</tempMin${i + 1}>
-  <tempMax${i + 1}>${day.tempMax}</tempMax${i + 1}>
-  <iconDay${i + 1}>${day.iconDay}</iconDay${i + 1}>
-  <iconNight${i + 1}>${day.iconNight}</iconNight${i + 1}>
-  <textDay${i + 1}>${day.textDay}</textDay${i + 1}>
-  <textNight${i + 1}>${day.textNight}</textNight${i + 1}>
-  <wind360Day${i + 1}>${day.wind360Day}</wind360Day${i + 1}>
-  <wind360Night${i + 1}>${day.wind360Night}</wind360Night${i + 1}>
-  <windDirDay${i + 1}>${day.windDirDay}</windDirDay${i + 1}>
-  <windDirNight${i + 1}>${day.windDirNight}</windDirNight${i + 1}>
-  <windScaleDay${i + 1}>${day.windScaleDay}</windScaleDay${i + 1}>
-  <windScaleNight${i + 1}>${day.windScaleNight}</windScaleNight${i + 1}>
-  <windSpeedDay${i + 1}>${day.windSpeedDay}</windSpeedDay${i + 1}>
-  <windSpeedNight${i + 1}>${day.windSpeedNight}</windSpeedNight${i + 1}>
-  <humidity${i + 1}>${day.humidity}</humidity${i + 1}>
-  <precip${i + 1}>${day.precip}</precip${i + 1}>
-  <pressure${i + 1}>${day.pressure}</pressure${i + 1}>
-  <vis${i + 1}>${day.vis}</vis${i + 1}>
-  <cloud${i + 1}>${day.cloud}</cloud${i + 1}>
-  <uvIndex${i + 1}>${day.uvIndex}</uvIndex${i + 1}>`;
-      }
-
-      // 添加额外的有意义字段来增加长度
-      forecastXml += `
-  <AdditionalData>
-    <Source>qweather</Source>
-    <UpdateTime>${updateTime}</UpdateTime>
-    <CityId>${city.id}</CityId>
-    <ForecastDays>${daily.length}</ForecastDays>
-    <TotalForecastItems>${daily.length}</TotalForecastItems>
-  </AdditionalData>`;
-    }
-
     forecastXml += `
 </weather>`;
-
-    // 确保长度不低于1500
-    forecastXml = this.addLengthPadding(forecastXml, appType);
 
     console.log(`Generated forecast XML length: ${forecastXml.length}`);
     return forecastXml;
   }
 
-  // 获取星期几
+  // 原有的 ZTE XML 生成（向后兼容）
+  private generateZteXml(weatherData: WeatherData, appType: AppType): string {
+    // 使用新的 WeatherTV 主数据生成方法
+    if (appType === AppType.WEATHER_TV) {
+      return this.generateWeatherTVMainXml(weatherData);
+    }
+
+    // 其他应用类型使用简化版本
+    return this.generateWeatherTVMainXml(weatherData);
+  }
+
+  // 辅助方法
+
+  // 获取星期几（中文）
   private getWeekday(dateStr: string): string {
     const date = new Date(dateStr);
     const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     return weekdays[date.getDay()] || '';
   }
 
-  // 提取城市信息，确保类型安全
+  // 获取星期数字（1-7）
+  private getWeekNumber(dateStr: string): string {
+    const date = new Date(dateStr);
+    const day = date.getDay();
+    // 转换为 1-7（周日=1，周一=2，...，周六=7）
+    return String(day === 0 ? 1 : day + 1);
+  }
+
+  // 提取城市信息
   private extractCityInfo(weatherData: WeatherData): {
     id: string;
     name: string;
     sunrise?: string;
     sunset?: string;
+    stationId?: string;
+    longitude?: string;
+    latitude?: string;
+    postcode?: string;
   } {
     return weatherData.city || { id: '', name: 'Unknown' };
   }
 
   // 格式化更新时间
   private formatUpdateTime(time: string | Date | undefined): string {
-    return utcToLocalTime(time || new Date()).toISOString();
+    return utcToLocalTime(time || new Date())
+      .toISOString()
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z/, '');
   }
 
   // 获取天气代码
@@ -316,199 +508,29 @@ class DataTransform {
     return `<?xml version="1.0" encoding="utf-8"?>`;
   }
 
-  // 为WeatherTV应用添加长度填充
-  private addLengthPadding(xml: string, appType: AppType): string {
-    if (appType === AppType.WEATHER_TV && xml.length < 1500) {
-      const padding = ' '.repeat(1500 - xml.length);
-      return xml.replace(
-        '</weather>',
-        `  <!-- ${padding} -->
-</weather>`
-      );
-    }
-    return xml;
+  // 获取指数类型代码
+  private getZuTypeCode(typeName: string): string {
+    const typeMap: Record<string, string> = {
+      穿衣: 'CY',
+      感冒: 'GM',
+      洗车: 'XC',
+      紫外线: 'ZWX',
+      运动: 'YD',
+    };
+    return typeMap[typeName] || typeName;
   }
 
-  // 为ZTE格式添加长度填充
-  private addZteLengthPadding(xml: string, appType: AppType): string {
-    if (appType === AppType.WEATHER_TV && xml.length < 1500) {
-      const padding = ' '.repeat(1500 - xml.length);
-      return xml + `  <!-- ${padding} -->`;
-    }
-    return xml;
-  }
-
-  private generateZteXml(weatherData: WeatherData, appType: AppType): string {
-    console.log(`Generating ZTE XML for ${appType} with data:`, weatherData);
-
-    // 使用统一的工具方法获取数据
-    const nowData = weatherData.now || {
-      temp: '0',
-      icon: '100',
-      updateTime: new Date().toISOString(),
-      humidity: '0',
-      pressure: '0',
-      windSpeed: '0',
-      windDir: '0',
-      vis: '0',
-      feelsLike: '0',
-      dew: '0',
-      cloud: '0',
-      precip: '0',
-      uvIndex: '0',
+  // 获取指数等级
+  private getZuTypeLevel(category: string): string {
+    // 将中文等级转换为数字
+    const levelMap: Record<string, string> = {
+      舒适: '1',
+      适宜: '1',
+      较适宜: '2',
+      较不宜: '3',
+      不宜: '4',
     };
-    const forecast = weatherData.forecast || {
-      daily: [],
-      updateTime: new Date().toISOString(),
-    };
-    const daily = forecast.daily || [];
-    const hourly = weatherData.hourly || {
-      hourly: [],
-      updateTime: new Date().toISOString(),
-    };
-    const hourlyData = hourly.hourly || [];
-    const indices = weatherData.indices || {
-      daily: [],
-      updateTime: new Date().toISOString(),
-    };
-    const indicesData = indices.daily || [];
-    const city = this.extractCityInfo(weatherData);
-    const updateTime = this.formatUpdateTime(
-      nowData.updateTime || weatherData.updateTime
-    );
-
-    const temp = nowData.temp || '0';
-    const weatherCode = this.getWeatherCode(nowData.icon);
-    const cityName = city.name || 'Unknown';
-
-    // 生成符合应用期望的XML结构
-    let xml = `${this.generateXmlHeader()}\n<CityMeteor CityName="${cityName}">\n  <SK ReportTime="${updateTime}"/>\n  <Info Weather="${weatherCode}" Temperature="${temp}"`;
-
-    // 只添加真实存在的API字段
-    if (nowData) {
-      if (nowData.humidity) xml += ` Humidity="${nowData.humidity}"`;
-      if (nowData.pressure) xml += ` Pressure="${nowData.pressure}"`;
-      if (nowData.windSpeed) xml += ` WindSpeed="${nowData.windSpeed}"`;
-      if (nowData.windDir) xml += ` WindDir="${nowData.windDir}"`;
-      if (nowData.vis) xml += ` Visibility="${nowData.vis}"`;
-      if (nowData.feelsLike) xml += ` FeelsLike="${nowData.feelsLike}"`;
-      if (nowData.dew) xml += ` DewPoint="${nowData.dew}"`;
-      if (nowData.cloud) xml += ` Cloud="${nowData.cloud}"`;
-      if (nowData.precip) xml += ` Precip="${nowData.precip}"`;
-      if (nowData.uvIndex) xml += ` UVIndex="${nowData.uvIndex}"`;
-    }
-
-    // 添加日出日落数据
-    if (city.sunrise) xml += ` Sunrise="${city.sunrise}"`;
-    if (city.sunset) xml += ` Sunset="${city.sunset}"`;
-
-    xml += `/>
-  <CF ReportTime="${updateTime}"/>
-`;
-
-    // 添加预报数据
-    for (let i = 0; i < daily.length && i < 7; i++) {
-      const day = daily[i];
-      const dayWeatherCode = this.getWeatherCode(day.iconDay);
-      xml += `  <Period Timestart="${day.fxDate} 00:00:00" Timeend="${day.fxDate} 23:59:59" Tmax="${day.tempMax}" Tmin="${day.tempMin}" Weather="${dayWeatherCode}" IconDay="${day.iconDay}"`;
-
-      // 只添加真实存在的预报字段
-      if (day.iconNight) xml += ` IconNight="${day.iconNight}"`;
-      if (day.textDay) xml += ` TextDay="${day.textDay}"`;
-      if (day.textNight) xml += ` TextNight="${day.textNight}"`;
-      if (day.wind360Day) xml += ` Wind360Day="${day.wind360Day}"`;
-      if (day.wind360Night) xml += ` Wind360Night="${day.wind360Night}"`;
-      if (day.windDirDay) xml += ` WindDirDay="${day.windDirDay}"`;
-      if (day.windDirNight) xml += ` WindDirNight="${day.windDirNight}"`;
-      if (day.windScaleDay) xml += ` WindScaleDay="${day.windScaleDay}"`;
-      if (day.windScaleNight) xml += ` WindScaleNight="${day.windScaleNight}"`;
-      if (day.windSpeedDay) xml += ` WindSpeedDay="${day.windSpeedDay}"`;
-      if (day.windSpeedNight) xml += ` WindSpeedNight="${day.windSpeedNight}"`;
-      if (day.humidity) xml += ` Humidity="${day.humidity}"`;
-      if (day.precip) xml += ` Precip="${day.precip}"`;
-      if (day.pressure) xml += ` Pressure="${day.pressure}"`;
-      if (day.vis) xml += ` Vis="${day.vis}"`;
-      if (day.cloud) xml += ` Cloud="${day.cloud}"`;
-      if (day.uvIndex) xml += ` UVIndex="${day.uvIndex}"`;
-      if (day.sunrise) xml += ` Sunrise="${day.sunrise}"`;
-      if (day.sunset) xml += ` Sunset="${day.sunset}"`;
-
-      xml += `/>`;
-    }
-
-    // 如果预报数据不足7天，添加基于真实数据的预报条目
-    if (daily.length < 7 && nowData) {
-      const today = new Date();
-      for (let i = daily.length; i < 7; i++) {
-        const forecastDate = new Date(today);
-        forecastDate.setDate(today.getDate() + i + 1);
-        const dateStr = forecastDate.toISOString().split('T')[0];
-        xml += `  <Period Timestart="${dateStr} 00:00:00" Timeend="${dateStr} 23:59:59" Tmax="${temp}" Tmin="${temp}" Weather="${weatherCode}" IconDay="${nowData.icon}" IconNight="${nowData.icon}"`;
-
-        // 只添加真实存在的字段
-        if (nowData.humidity) xml += ` Humidity="${nowData.humidity}"`;
-        if (nowData.pressure) xml += ` Pressure="${nowData.pressure}"`;
-        if (nowData.windSpeed)
-          xml += ` WindSpeedDay="${nowData.windSpeed}" WindSpeedNight="${nowData.windSpeed}"`;
-        if (nowData.windDir)
-          xml += ` WindDirDay="${nowData.windDir}" WindDirNight="${nowData.windDir}"`;
-        if (nowData.vis) xml += ` Vis="${nowData.vis}"`;
-        if (nowData.cloud) xml += ` Cloud="${nowData.cloud}"`;
-        if (nowData.uvIndex) xml += ` UVIndex="${nowData.uvIndex}"`;
-
-        xml += `/>`;
-      }
-    }
-
-    // 添加3小时预报数据
-    if (hourlyData.length > 0) {
-      xml += `  <CF3h ReportTime="${updateTime}"/>\n`;
-      for (let i = 0; i < hourlyData.length && i < 24; i += 3) {
-        const hour = hourlyData[i];
-        const hourWeatherCode = this.getWeatherCode(hour.icon);
-        const fxTime = hour.fxTime.replace('T', ' ').replace('Z', '');
-        xml += `  <Cf3hPart_TimeScale TimeBegin="${fxTime}" TimeOver="${fxTime}" Temperature="${hour.temp}" Weather="${hourWeatherCode}" WindDir="${hour.windDir}" WindPower="${hour.windScale}" />
-`;
-      }
-    }
-
-    // 添加天气指数数据
-    if (indicesData.length > 0) {
-      xml += `  <ZU ReportTime="${updateTime}"/>
-`;
-      for (const index of indicesData) {
-        xml += `  <ZuType typechineseStr="${index.name}" typeinfo="${index.text}" typename="${index.name}" typeval="${index.category}" typevalStr="${index.category}" />
-`;
-      }
-    }
-
-    // 为WeatherTV应用添加长度检查和填充
-    if (appType === AppType.WEATHER_TV) {
-      // 添加额外的有意义字段来增加长度
-      xml += `  <AdditionalData>\n`;
-      xml += `    <Source>qweather</Source>\n`;
-      xml += `    <UpdateTime>${updateTime}</UpdateTime>\n`;
-      xml += `    <CityId>${city.id}</CityId>\n`;
-      xml += `    <OriginalWeatherCode>${nowData.icon || ''}</OriginalWeatherCode>\n`;
-      xml += `    <ForecastDays>${daily.length}</ForecastDays>\n`;
-      xml += `    <HourlyForecastCount>${hourlyData.length}</HourlyForecastCount>\n`;
-      xml += `    <IndicesCount>${indicesData.length}</IndicesCount>\n`;
-      xml += `  </AdditionalData>\n`;
-    }
-
-    xml += `</CityMeteor>`;
-
-    // 确保长度不低于1500字符
-    if (appType === AppType.WEATHER_TV) {
-      // 使用临时包装来应用长度填充
-      let tempXml = xml.replace('</CityMeteor>', '');
-      tempXml = this.addZteLengthPadding(tempXml, appType);
-      xml = tempXml + `</CityMeteor>`;
-    }
-
-    console.log(`Generated ZTE XML length: ${xml.length}`);
-    console.log(`Generated ZTE XML: ${xml}`);
-    return xml;
+    return levelMap[category] || '1';
   }
 }
 
