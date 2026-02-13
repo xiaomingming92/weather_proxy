@@ -2,7 +2,7 @@
  * @Author       : Z2-WIN\xmm wujixmm@gmail.com
  * @Date         : 2026-02-12 16:00:00
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
- * @LastEditTime : 2026-02-13 11:40:12
+ * @LastEditTime : 2026-02-13 12:55:53
  * @FilePath     : \decompile\weather_proxy\.trae\documents\VIP-----adb安装自开发的apk的调试过程.md
  * @Description  : 小白级ADB调试指南 - 以WeatherWidget为例
 -->
