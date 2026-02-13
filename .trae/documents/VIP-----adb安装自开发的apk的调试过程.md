@@ -2,7 +2,7 @@
  * @Author       : Z2-WIN\xmm wujixmm@gmail.com
  * @Date         : 2026-02-12 16:00:00
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
- * @LastEditTime : 2026-02-13 09:31:11
+ * @LastEditTime : 2026-02-13 11:40:12
  * @FilePath     : \decompile\weather_proxy\.trae\documents\VIP-----adb安装自开发的apk的调试过程.md
  * @Description  : 小白级ADB调试指南 - 以WeatherWidget为例
 -->
@@ -62,7 +62,7 @@ adb logcat -c
 
 **窗口 1 - 监控 WeatherWidget 专属日志：**
 ```powershell
-powershell -Command "adb logcat -s 'fz' 'ZTEWidget2DWeather' 'WeatherService' 'CurrentWeatherRequest' 'ForecastWeatherRequest'"
+powershell -Command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; adb logcat -d -s 'fz' 'ZTEWidget2DWeather' 'WeatherService' 'CurrentWeatherRequest' 'ForecastWeatherRequest'"
 ```
 
 **窗口 2 - 监控所有网络请求和错误：**
