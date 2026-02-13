@@ -59,27 +59,31 @@ const weatherCodeMap: Record<string, string> = {
   '500': '35', // 雾
   '501': '36', // 雾
   '502': '37', // 雾
-  '503': '38', // 雾
-  '504': '39', // 雾
-  '507': '40', // 雾
-  '508': '41', // 雾
-  '600': '42', // 风
-  '601': '43', // 风
-  '602': '44', // 风
-  '700': '45', // 霾
-  '701': '46', // 霾
-  '702': '47', // 霾
-  '703': '48', // 霾
-  '704': '49', // 霾
-  '705': '50', // 霾
-  '706': '51', // 霾
-  '707': '52', // 霾
-  '708': '53', // 霾
-  '800': '54', // 沙尘
-  '801': '55', // 沙尘
-  '802': '56', // 沙尘
-  '803': '57', // 沙尘
-  '804': '58', // 沙尘
+  // 503-508 的雾/浓雾映射到 37（雾）
+  '503': '37',
+  '504': '37',
+  '507': '37',
+  '508': '37',
+  // 600-602 的风映射到 1（阴）
+  '600': '1',
+  '601': '1',
+  '602': '1',
+  // 700-708 的霾映射到 18（雾）
+  '700': '18',
+  '701': '18',
+  '702': '18',
+  '703': '18',
+  '704': '18',
+  '705': '18',
+  '706': '18',
+  '707': '18',
+  '708': '18',
+  // 800-804 的沙尘映射到 21（沙尘暴）
+  '800': '21',
+  '801': '30', // 浮尘
+  '802': '31', // 扬沙
+  '803': '32', // 强沙尘暴
+  '804': '32', // 强沙尘暴
 };
 
 class DataTransform {
@@ -580,9 +584,32 @@ class DataTransform {
       .replace(/\.\d{3}Z/, '');
   }
 
-  // 获取天气代码
+  // 获取天气代码 - 限制在 0-37 范围内，防止 Widget 数组越界
   private getWeatherCode(icon: string | undefined): string {
-    return weatherCodeMap[icon || '100'] || '0';
+    const originalIcon = icon || '100';
+    const mappedCode = weatherCodeMap[originalIcon];
+
+    // 如果没有找到映射，使用默认值 0（晴）
+    if (mappedCode === undefined) {
+      console.log(`[WeatherCode] Unknown icon: ${originalIcon}, fallback to 0`);
+      return '0';
+    }
+
+    const codeNum = parseInt(mappedCode, 10);
+
+    // 限制在 0-37 范围内（Widget 数组长度）
+    if (codeNum > 37) {
+      console.log(
+        `[WeatherCode] Icon ${originalIcon} mapped to ${mappedCode} exceeds Widget limit(37), using fallback`
+      );
+      // Fallback 映射规则
+      if (codeNum >= 42 && codeNum <= 44) return '1'; // 风 -> 阴
+      if (codeNum >= 45 && codeNum <= 53) return '18'; // 霾 -> 雾
+      if (codeNum >= 54 && codeNum <= 58) return '21'; // 沙尘 -> 沙尘暴
+      return '0'; // 其他 -> 晴
+    }
+
+    return mappedCode;
   }
 
   // 转换风向：中文风向 -> 数字代码
