@@ -2,7 +2,7 @@
  * @Author       : Z2-WIN\xmm wujixmm@gmail.com
  * @Date         : 2026-02-12 16:00:00
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
- * @LastEditTime : 2026-02-12 16:00:00
+ * @LastEditTime : 2026-02-13 09:31:11
  * @FilePath     : \decompile\weather_proxy\.trae\documents\VIP-----adb安装自开发的apk的调试过程.md
  * @Description  : 小白级ADB调试指南 - 以WeatherWidget为例
 -->
@@ -69,7 +69,10 @@ powershell -Command "adb logcat -s 'fz' 'ZTEWidget2DWeather' 'WeatherService' 'C
 ```powershell
 powershell -Command "adb logcat | Select-String -Pattern 'http|192.168|8.153.104|request|error|Error|ERROR|Exception'"
 ```
-
+**窗口 3 - 监控 WeatherTV 服务日志：**
+```powershell
+powershell -Command "adb logcat -s 'WidgetService' 'WidgetService_SK' 'hf.weather' 'DefaultCityMain' 'CityDataMain'"
+```
 ### 第四步：操作 App 触发请求
 
 在手机上操作：

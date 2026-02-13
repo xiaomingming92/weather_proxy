@@ -536,8 +536,35 @@ XML 响应格式 :
    | `icon` | `Weather` | 天气图标代码（需要转换） |
    | `humidity` | `Humidity` | 相对湿度 |
    | `pressure` | `Pressure` | 大气压强 |
-   | `windDir` | `WindDir` | 风向 |
+   | `windDir` | `WindDir` | 风向（需要转换） |
    | `windSpeed` | `WindSpeed` | 风速 |
    | `windScale` | `WindPower` | 风力等级 |
+
+6. **风向字段转换映射**（基于 DecodeData.smali 逆向代码）：
+
+   **重要说明**：和风天气 API 返回的 `windDir` 是**中文风向**（如"东南风"），但 WeatherTV 期望的是**数字代码**（0-9）。需要进行如下转换：
+
+   | 数字代码 | 中文风向 | 说明 |
+   |---------|---------|------|
+   | 0 | 无/无风向 | 无持续风向 |
+   | 1 | 东北风 | 东北方向 |
+   | 2 | 东风 | 正东方向 |
+   | 3 | 东南风 | 东南方向 |
+   | 4 | 南风 | 正南方向 |
+   | 5 | 西南风 | 西南方向 |
+   | 6 | 西风 | 正西方向 |
+   | 7 | 西北风 | 西北方向 |
+   | 8 | 北风 | 正北方向 |
+   | 9 | 旋风 | 旋转风 |
+
+   **证据来源**：
+   - `DecodeData.smali` L403-502：`decode_SKwindDir(I)` 方法定义了实况风向的数字到中文映射
+   - `DecodeData.smali` L2470-2569：`decode_windDir(I)` 方法定义了预报风向的数字到中文映射
+   - `newdata.xml` L23：示例数据 `WindDir="3"` 对应"东南风"
+
+   **实现要求**：
+   - SK 节点 Info 属性的 `WindDir` 需要转换
+   - CF 节点 Period 属性的 `WindDir` 需要转换
+   - CF3h 节点 Period 属性的 `WindDir` 需要转换
 
 以上是对 WeatherTV_V880+ 逆向代码中所有 XML 解析相关组件的完整分析

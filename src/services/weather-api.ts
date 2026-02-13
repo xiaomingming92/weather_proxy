@@ -94,6 +94,7 @@ class WeatherApi {
 
   // 验证实时天气数据是否完整
   private isValidNowWeather(data: any): boolean {
+    console.log('实况天气数据:', data);
     const isValid =
       data &&
       data.now &&

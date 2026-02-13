@@ -2,6 +2,24 @@
 import { utcToLocalTime } from '../utils/time-utils.js';
 import { DataType, AppType, WeatherData } from '../types/index.js';
 
+// 风向转换映射：中文风向 -> 数字代码
+// 基于 DecodeData.smali 逆向代码：
+// - decode_SKwindDir(I) L403-502: 实况风向映射
+// - decode_windDir(I) L2470-2569: 预报风向映射
+const windDirMap: Record<string, string> = {
+  无: '0',
+  无风向: '0',
+  东北风: '1',
+  东风: '2',
+  东南风: '3',
+  南风: '4',
+  西南风: '5',
+  西风: '6',
+  西北风: '7',
+  北风: '8',
+  旋风: '9',
+};
+
 const weatherCodeMap: Record<string, string> = {
   '100': '0', // 晴
   '101': '1', // 多云
@@ -182,12 +200,13 @@ class DataTransform {
 
     // 2. SK 节点（实况）- Info 作为子节点
     // 所有7个属性都必须存在：Weather, Temperature, WindDir, WindPower, WindSpeed, Humidity, Pressure
+    // WindDir 需要转换：中文风向 -> 数字代码
     xml += `
   <SK ReportTime="${updateTime}">
     <Info 
       Weather="${weatherCode}" 
       Temperature="${temp}"
-      WindDir="${nowData.windDir}"
+      WindDir="${this.convertWindDir(nowData.windDir)}"
       WindPower="${nowData.windScale}"
       WindSpeed="${nowData.windSpeed}"
       Humidity="${nowData.humidity}"
@@ -211,7 +230,7 @@ class DataTransform {
       Weather="${dayWeatherCode}" 
       Tmin="${day.tempMin}" 
       Tmax="${day.tempMax}" 
-      WindDir="${day.windDirDay || '0'}" 
+      WindDir="${this.convertWindDir(day.windDirDay)}" 
       WindPower="${day.windScaleDay || '0'}" 
       Week="${week}" />`;
     }
@@ -260,7 +279,7 @@ class DataTransform {
       Timestart="${fxTime}" 
       Timeend="${fxTime}" 
       Weather="${hourWeatherCode}" 
-      WindDir="${hour.windDir || '0'}" 
+      WindDir="${this.convertWindDir(hour.windDir)}" 
       WindPower="${hour.windScale || '0'}" />`;
       }
 
@@ -564,6 +583,16 @@ class DataTransform {
   // 获取天气代码
   private getWeatherCode(icon: string | undefined): string {
     return weatherCodeMap[icon || '100'] || '0';
+  }
+
+  // 转换风向：中文风向 -> 数字代码
+  // 和风天气 API 返回中文（如"东南风"），WeatherTV 期望数字代码（如"3"）
+  private convertWindDir(windDir: string | undefined): string {
+    if (!windDir) return '0';
+    // 如果已经是数字，直接返回
+    if (/^\d+$/.test(windDir)) return windDir;
+    // 转换中文风向
+    return windDirMap[windDir] || '0';
   }
 
   // 生成XML头部

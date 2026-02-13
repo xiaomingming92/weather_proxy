@@ -120,4 +120,67 @@ router.delete('/cache/:key', async (req, res) => {
   }
 });
 
+// 删除天气缓存数据（支持按时间删除，不传则全删）
+router.delete('/weather-cache', async (req, res) => {
+  try {
+    const { before } = req.query;
+    let beforeTimestamp: bigint | undefined;
+
+    if (before) {
+      let beforeTime: Date;
+      const beforeStr = before as string;
+
+      // 1. 尝试解析为纯数字时间戳（毫秒）
+      const timestamp = parseInt(beforeStr, 10);
+      if (!isNaN(timestamp) && beforeStr.match(/^\d+$/)) {
+        beforeTime = new Date(timestamp);
+      }
+      // 2. 尝试解析为 ISO 格式（带时区，如 2026-02-12T10:00:00.000Z）
+      else if (beforeStr.match(/T/) || beforeStr.match(/Z$/)) {
+        beforeTime = new Date(beforeStr);
+      }
+      // 3. 尝试解析为本地时间格式（YYYY-MM-DD hh:mm:ss，默认 UTC+8）
+      else {
+        // 将本地时间（UTC+8）转换为 UTC 时间
+        const localDate = new Date(beforeStr.replace(' ', 'T'));
+        if (isNaN(localDate.getTime())) {
+          res.status(400).json({
+            status: 'error',
+            message:
+              'Invalid before parameter. Use timestamp (ms), ISO date string (with timezone), or local time (YYYY-MM-DD hh:mm:ss, UTC+8)',
+          });
+          return;
+        }
+        // 减去 8 小时，将 UTC+8 转换为 UTC
+        beforeTime = new Date(localDate.getTime() - 8 * 60 * 60 * 1000);
+      }
+
+      if (isNaN(beforeTime.getTime())) {
+        res.status(400).json({
+          status: 'error',
+          message:
+            'Invalid before parameter. Use timestamp (ms), ISO date string (with timezone), or local time (YYYY-MM-DD hh:mm:ss, UTC+8)',
+        });
+        return;
+      }
+      beforeTimestamp = BigInt(beforeTime.getTime());
+    }
+
+    const result = await prismaCache.clearWeatherData(beforeTimestamp);
+    res.json({
+      status: 'ok',
+      message: beforeTimestamp
+        ? `Deleted ${result.deletedCount} weather data records before ${before}`
+        : `Deleted all ${result.deletedCount} weather data records`,
+      data: result,
+    });
+  } catch (error) {
+    console.error('Error clearing weather cache:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to clear weather cache',
+    });
+  }
+});
+
 export default router;

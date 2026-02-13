@@ -440,6 +440,127 @@ describe('DataTransform', () => {
     });
   });
 
+  describe('Wind Direction Conversion', () => {
+    it('should convert Chinese wind direction to numeric code', () => {
+      const testData: WeatherData = {
+        now: {
+          temp: '25',
+          icon: '100',
+          updateTime: '2024-01-01T12:00:00+08:00',
+          humidity: '50',
+          pressure: '1013',
+          windSpeed: '10',
+          windDir: '东南风', // 中文风向
+          windScale: '3',
+        },
+        forecast: { daily: [], updateTime: '2024-01-01T12:00:00+08:00' },
+        city: { id: '1', name: 'Test' },
+      };
+
+      const xml = dataTransform.toWidgetXml(
+        testData,
+        DataType.MAIN_DATA,
+        AppType.WEATHER_TV
+      );
+      expect(xml).toContain('WindDir="3"'); // 东南风 -> 3
+    });
+
+    it('should handle numeric wind direction as-is', () => {
+      const testData: WeatherData = {
+        now: {
+          temp: '25',
+          icon: '100',
+          updateTime: '2024-01-01T12:00:00+08:00',
+          humidity: '50',
+          pressure: '1013',
+          windSpeed: '10',
+          windDir: '2', // 已经是数字
+          windScale: '3',
+        },
+        forecast: { daily: [], updateTime: '2024-01-01T12:00:00+08:00' },
+        city: { id: '1', name: 'Test' },
+      };
+
+      const xml = dataTransform.toWidgetXml(
+        testData,
+        DataType.MAIN_DATA,
+        AppType.WEATHER_TV
+      );
+      expect(xml).toContain('WindDir="2"'); // 保持原样
+    });
+
+    it('should convert all Chinese wind directions correctly', () => {
+      const windDirTests = [
+        { chinese: '无', code: '0' },
+        { chinese: '无风向', code: '0' },
+        { chinese: '东北风', code: '1' },
+        { chinese: '东风', code: '2' },
+        { chinese: '东南风', code: '3' },
+        { chinese: '南风', code: '4' },
+        { chinese: '西南风', code: '5' },
+        { chinese: '西风', code: '6' },
+        { chinese: '西北风', code: '7' },
+        { chinese: '北风', code: '8' },
+        { chinese: '旋风', code: '9' },
+      ];
+
+      for (const test of windDirTests) {
+        const testData: WeatherData = {
+          now: {
+            temp: '25',
+            icon: '100',
+            updateTime: '2024-01-01T12:00:00+08:00',
+            humidity: '50',
+            pressure: '1013',
+            windSpeed: '10',
+            windDir: test.chinese,
+            windScale: '3',
+          },
+          forecast: { daily: [], updateTime: '2024-01-01T12:00:00+08:00' },
+          city: { id: '1', name: 'Test' },
+        };
+
+        const xml = dataTransform.toWidgetXml(
+          testData,
+          DataType.MAIN_DATA,
+          AppType.WEATHER_TV
+        );
+        expect(xml).toContain(`WindDir="${test.code}"`);
+      }
+    });
+
+    it('should convert wind direction in forecast data', () => {
+      const testData: WeatherData = {
+        now: {
+          temp: '25',
+          icon: '100',
+          updateTime: '2024-01-01T12:00:00+08:00',
+        },
+        forecast: {
+          daily: [
+            {
+              fxDate: '2024-01-01',
+              tempMin: '15',
+              tempMax: '25',
+              iconDay: '100',
+              windDirDay: '西北风', // 中文风向
+              windScaleDay: '3',
+            },
+          ],
+          updateTime: '2024-01-01T12:00:00+08:00',
+        },
+        city: { id: '1', name: 'Test' },
+      };
+
+      const xml = dataTransform.toWidgetXml(
+        testData,
+        DataType.MAIN_DATA,
+        AppType.WEATHER_TV
+      );
+      expect(xml).toContain('WindDir="7"'); // 西北风 -> 7
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle missing optional fields gracefully', () => {
       const minimalData: WeatherData = {

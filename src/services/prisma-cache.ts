@@ -240,6 +240,34 @@ class PrismaCacheService {
     }
   }
 
+  // 删除缓存数据（支持按时间删除，不传则全删）
+  async clearWeatherData(
+    beforeTimestamp?: bigint
+  ): Promise<{ deletedCount: number }> {
+    try {
+      let result;
+      if (beforeTimestamp) {
+        // 删除指定时间之前的缓存
+        result = await prisma.weatherData.deleteMany({
+          where: {
+            createdAt: { lte: beforeTimestamp },
+          },
+        });
+        console.log(
+          `Deleted ${result.count} weather data records before ${beforeTimestamp}`
+        );
+      } else {
+        // 删除所有缓存
+        result = await prisma.weatherData.deleteMany({});
+        console.log(`Deleted all ${result.count} weather data records`);
+      }
+      return { deletedCount: result.count };
+    } catch (error) {
+      console.error('Error clearing weather data:', error);
+      throw error;
+    }
+  }
+
   // 关闭Prisma客户端
   async close(): Promise<void> {
     try {
