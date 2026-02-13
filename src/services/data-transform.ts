@@ -131,16 +131,20 @@ class DataTransform {
     }
   }
 
-  // WeatherWidget XML 生成
+  // WeatherWidget XML 生成 - 使用原来的 <weather> 格式保持兼容
   private generateWeatherWidgetXml(
     weatherData: WeatherData,
     dataType: string
   ): string {
+    // WeatherWidget 使用原来的格式，不改为 <CityMeteor> 格式
     switch (dataType) {
       case DataType.CURRENT_WEATHER_V3:
-        return this.generateWeatherWidgetCurrentXml(weatherData);
+        return this.generateCurrentWeatherXml(
+          weatherData,
+          AppType.WEATHER_WIDGET
+        );
       case DataType.FORECAST_WEATHER_V3:
-        return this.generateWeatherWidgetForecastXml(weatherData);
+        return this.generateForecastXml(weatherData, AppType.WEATHER_WIDGET);
       default:
         return '<error>Invalid WeatherWidget dataType</error>';
     }
