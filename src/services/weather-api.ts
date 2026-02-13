@@ -178,7 +178,7 @@ class WeatherApi {
 
       console.log('Weather data retrieved successfully');
       return {
-        now: nowWeather,
+        now: nowWeather.now,
         forecast: forecast,
         hourly: hourlyForecast,
         indices: weatherIndices,

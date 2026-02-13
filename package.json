@@ -18,7 +18,8 @@
     "pm2:restart": "pm2 restart weather-proxy --update-env",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "clear-cache": "tsx scripts/clear-cache.ts"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.3.0",
