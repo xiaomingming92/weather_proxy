@@ -2,7 +2,7 @@
  * @Author       : Z2-WIN\xmm wujixmm@gmail.com
  * @Date         : 2026-02-13 09:54:44
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
- * @LastEditTime : 2026-02-13 10:02:26
+ * @LastEditTime : 2026-02-13 11:06:43
  * @FilePath     : \decompile\weather_proxy\scripts\clear-cache.ts
  * @Description  :
  */
