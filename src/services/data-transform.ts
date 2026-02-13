@@ -64,10 +64,10 @@ const weatherCodeMap: Record<string, string> = {
   '504': '37',
   '507': '37',
   '508': '37',
-  // 600-602 的风映射到 1（阴）
-  '600': '1',
-  '601': '1',
-  '602': '1',
+  // 600-602 的风根据风力映射
+  '600': '2', // 轻风/微风 -> 多云
+  '601': '2', // 和风 -> 多云
+  '602': '33', // 强风/劲风 -> 飑(Squall)
   // 700-708 的霾映射到 18（雾）
   '700': '18',
   '701': '18',
@@ -602,10 +602,10 @@ class DataTransform {
       console.log(
         `[WeatherCode] Icon ${originalIcon} mapped to ${mappedCode} exceeds Widget limit(37), using fallback`
       );
-      // Fallback 映射规则
-      if (codeNum >= 42 && codeNum <= 44) return '1'; // 风 -> 阴
-      if (codeNum >= 45 && codeNum <= 53) return '18'; // 霾 -> 雾
-      if (codeNum >= 54 && codeNum <= 58) return '21'; // 沙尘 -> 沙尘暴
+      // Fallback 映射规则（根据QWeather代码范围）
+      if (codeNum >= 42 && codeNum <= 44) return '2'; // 600-602风已在映射表中处理，这里是保险
+      if (codeNum >= 45 && codeNum <= 53) return '18'; // 700-708霾 -> 雾
+      if (codeNum >= 54 && codeNum <= 58) return '21'; // 800-804沙尘 -> 沙尘暴
       return '0'; // 其他 -> 晴
     }
 
