@@ -170,7 +170,7 @@ curl "http://localhost:1888/api/weather?dataType=CURRENT_WEATHER&sname=北京&co
 | 添加缺失的天气API接口.md | 添加缺失的天气 API 接口的方案 | [查看](./.trae/documents/添加缺失的天气API接口.md) |
 | 解决PrismaClient初始化问题并正确连接MySQL数据库.md | 解决 PrismaClient 初始化问题和数据库连接方案 | [查看](./.trae/documents/解决PrismaClient初始化问题并正确连接MySQL数据库.md) |
 | 天气API供应商.md | 天气 API 供应商关系说明文档 | [查看](./.trae/documents/天气API供应商.md) |
-| 天气APK | 只调整了接口地址 | APK文件夹内，仅本地调试开发使用，不承担任何法律责任。仅证明项目数据流转使用，不建议其他人下载日常使用 |
+| 天气APK | 只调整了接口地址 | APK文件夹内，仅本地调试开发使用，不承担任何法律责任。仅证明项目数据流转使用，不建议其他人下载日常使用。必须V880的system/app/路径下，root:root & 644 |
 ## 部署说明
 
 ### 开发环境部署
