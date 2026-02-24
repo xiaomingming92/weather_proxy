@@ -1,5 +1,5 @@
 import express from 'express';
-import prismaCache from '../services/prisma-cache.js';
+import prismaCache from '@/services/prisma-cache.js';
 
 const router = express.Router();
 

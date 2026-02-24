@@ -1,140 +1,157 @@
 /*
  * @Author       : Z2-WIN\xmm wujixmm@gmail.com
- * @Date         : 2026-02-09 17:08:58
+ * @Date         : 2026-02-12
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
  * @LastEditTime : 2026-02-12
  * @FilePath     : \decompile\weather_proxy\src\types\index.ts
- * @Description  : 类型定义文件
+ * @Description  : 基础类型定义 - 所有设备共用的核心类型
  */
 
-// 数据类型枚举
-export enum DataType {
-  // WeatherWidget 类型
-  CURRENT_WEATHER_V3 = 'ztev3widgetskall', // Widget 实况（完整版）
-  FORECAST_WEATHER_V3 = 'ztev3widgetcfall', // Widget 预报（完整版）
+// ============================================
+// 基础类型（使用泛型 + 联合类型设计）
+// ============================================
 
-  // WeatherTV Widget 类型
-  WIDGET_SK = 'ztewidgetsk', // Widget 实况（简化版）
-  WIDGET_CF = 'ztewidgetcf', // Widget 预报（简化版）
-
-  // WeatherTV 主类型
-  MAIN_DATA = 'zte', // 主天气数据（完整）
-
-  // 城市列表
-  CITY_LIST = 'allcity', // 城市列表
+/**
+ * 实时天气数据 - 基础类型（必填字段）
+ */
+export interface CurrentWeatherBase {
+  temp: string;
+  icon: string;
 }
 
-// 应用类型枚举
-export enum AppType {
-  WEATHER_WIDGET = 'weatherwidget',
-  WEATHER_TV = 'weathertv',
-  UNKNOWN = 'unknown',
+/**
+ * 实时天气数据 - HTC 扩展字段
+ */
+export interface CurrentWeatherHtcExt {
+  text: string;
+  humidity: string;
+  windDir: string;
+  windScale: string;
+  obsTime: string;
 }
 
-// 天气数据接口
-export interface WeatherData {
-  now?: {
-    temp: string;
-    icon: string;
-    updateTime: string;
-    humidity?: string;
-    pressure?: string;
-    windSpeed?: string;
-    windDir?: string;
-    vis?: string;
-    feelsLike?: string;
-    dew?: string;
-    cloud?: string;
-    precip?: string;
-    uvIndex?: string;
-    windScale?: string; // 新增：风力等级
-  };
-
-  forecast?: {
-    daily?: Array<{
-      fxDate: string;
-      tempMin: string;
-      tempMax: string;
-      iconDay: string;
-      iconNight?: string;
-      textDay?: string;
-      textNight?: string;
-      wind360Day?: string;
-      wind360Night?: string;
-      windDirDay?: string;
-      windDirNight?: string;
-      windScaleDay?: string;
-      windScaleNight?: string;
-      windSpeedDay?: string;
-      windSpeedNight?: string;
-      humidity?: string;
-      precip?: string;
-      pressure?: string;
-      vis?: string;
-      cloud?: string;
-      uvIndex?: string;
-      sunrise?: string;
-      sunset?: string;
-      week?: string; // 新增：星期（1-7）
-    }>;
-    updateTime: string;
-  };
-
-  hourly?: {
-    hourly?: Array<{
-      fxTime: string;
-      temp: string;
-      icon: string;
-      text: string;
-      wind360: string;
-      windDir: string;
-      windScale: string;
-      windSpeed: string;
-      humidity: string;
-      precip: string;
-      pressure: string;
-      vis: string;
-      cloud: string;
-      dew: string;
-    }>;
-    updateTime: string;
-  };
-
-  indices?: {
-    daily?: Array<{
-      date: string;
-      type: string;
-      name: string;
-      category: string;
-      text: string;
-      level?: string; // 新增：指数等级
-    }>;
-    updateTime: string;
-  };
-
-  city?: {
-    id: string;
-    name: string;
-    sunrise?: string;
-    sunset?: string;
-    // 新增：站点信息
-    stationId?: string;
-    longitude?: string;
-    latitude?: string;
-    postcode?: string;
-  };
-
-  // 新增：广告信息
-  advertisement?: {
-    cfFlag?: string;
-    skFlag?: string;
-    zuFlag?: string;
-  };
-
-  updateTime?: string;
+/**
+ * 实时天气数据 - V880 扩展字段
+ */
+export interface CurrentWeatherV880Ext {
+  updateTime: string;
+  pressure: string;
+  windSpeed: string;
+  vis: string;
+  feelsLike: string;
+  dew: string;
+  cloud: string;
+  precip: string;
+  uvIndex: string;
 }
 
-// 缓存数据接口
+/**
+ * 实时天气数据 - 完整类型（联合类型）
+ */
+export type CurrentWeather = CurrentWeatherBase &
+  Partial<CurrentWeatherHtcExt> &
+  Partial<CurrentWeatherV880Ext>;
+
+/**
+ * 预报天数据 - 基础类型（必填字段）
+ */
+export interface DailyForecastBase {
+  fxDate: string;
+  tempMin: string;
+  tempMax: string;
+  iconDay: string;
+  iconNight: string;
+}
+
+/**
+ * 预报天数据 - HTC 扩展字段
+ */
+export interface DailyForecastHtcExt {
+  textDay: string;
+  textNight: string;
+}
+
+/**
+ * 预报天数据 - 通用扩展字段
+ */
+export interface DailyForecastCommonExt {
+  windDirDay: string;
+  windDirNight: string;
+  windScaleDay: string;
+  windScaleNight: string;
+  windSpeedDay: string;
+  windSpeedNight: string;
+  humidity: string;
+  precip: string;
+  pressure: string;
+  vis: string;
+  cloud: string;
+  uvIndex: string;
+  sunrise: string;
+  sunset: string;
+  week: string;
+}
+
+/**
+ * 预报天数据 - 完整类型（联合类型）
+ */
+export type DailyForecast = DailyForecastBase &
+  Partial<DailyForecastHtcExt> &
+  Partial<DailyForecastCommonExt>;
+
+/**
+ * 城市信息（通用格式）
+ */
+export interface CityInfo {
+  id: string;
+  name: string;
+  country?: string;
+  adm1?: string;
+  lat?: string;
+  lon?: string;
+  sunrise?: string;
+  sunset?: string;
+  stationId?: string;
+  longitude?: string;
+  latitude?: string;
+  postcode?: string;
+}
+
+/**
+ * 小时预报数据（通用格式）
+ */
+export interface HourlyForecast {
+  fxTime: string;
+  temp: string;
+  icon: string;
+  text: string;
+  wind360: string;
+  windDir: string;
+  windScale: string;
+  windSpeed: string;
+  humidity: string;
+  precip: string;
+  pressure: string;
+  vis: string;
+  cloud: string;
+  dew: string;
+}
+
+/**
+ * 天气指数数据（通用格式）
+ */
+export interface WeatherIndex {
+  date: string;
+  type: string;
+  name: string;
+  category: string;
+  text: string;
+  level?: string;
+}
+
+/**
+ * 缓存数据
+ */
 export interface CachedWeatherData {
   id: string;
   cityId: string;
@@ -146,10 +163,16 @@ export interface CachedWeatherData {
   cacheDuration: number;
 }
 
-// 缓存策略接口
+/**
+ * 缓存策略
+ */
 export interface CachePolicy {
   dataType: string;
   appType: string;
   duration: number;
   description?: string;
 }
+
+// 导出设备专用类型
+export * from './zte.js';
+export * from './htc.js';

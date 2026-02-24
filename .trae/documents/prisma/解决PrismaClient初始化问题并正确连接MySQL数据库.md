@@ -57,3 +57,9 @@ const prisma = new PrismaClient({
 - **连接池**：使用连接池可以提高数据库性能和可靠性
 - **环境变量**：通过dotenv加载环境变量，确保数据库连接信息安全管理
 
+---
+
+## 相关文档
+
+- [Prisma使用文档](./Prisma使用文档.md)
+- [Prisma持久化缓存实现计划](./Prisma持久化缓存实现计划.md)

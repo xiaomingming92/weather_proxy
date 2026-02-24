@@ -7,11 +7,11 @@
  * @Description  :
  */
 import express from 'express';
-import weatherApi from '../services/weather-api.js';
-import dataTransform from '../services/data-transform.js';
-import cache from '../services/cache.js';
-import prismaCache from '../services/prisma-cache.js';
-import { AppType, WeatherData } from '../types/index.js';
+import weatherApi from '@/services/weather-api.js';
+import dataTransform from '@/services/zte/data-transform.js';
+import cache from '@/services/cache.js';
+import { zteCache } from '@/services/cache/index.js';
+import { AppType, WeatherData } from '@/types/index.js';
 
 const router = express.Router();
 
@@ -82,14 +82,13 @@ async function handleWeatherRequest(
     return;
   }
 
-  // 检查Prisma缓存
-  const cachedWeatherData = await prismaCache.getWeatherData(
+  // 检查ZTE数据库缓存
+  const cachedWeatherData = await zteCache.getWeatherData(
     actualCityId,
-    dataType as string,
-    appType
+    dataType as string
   );
   if (cachedWeatherData) {
-    console.log('Returning Prisma cached data for', actualCityId, dataType);
+    console.log('Returning ZTE cached data for', actualCityId, dataType);
     res.set('Content-Type', 'application/xml');
     res.send(cachedWeatherData.xmlData);
     return;
@@ -100,18 +99,15 @@ async function handleWeatherRequest(
   const cachedData = cache.get(cacheKey);
   if (cachedData) {
     console.log('Returning memory cached data for', cacheKey);
-    // 同时更新Prisma缓存
-    const cacheDuration = await prismaCache.getCacheDuration(
-      dataType as string
-    );
-    await prismaCache.createOrUpdateWeatherData(
+    // 同时更新ZTE数据库缓存
+    const cacheDuration = await zteCache.getCacheDuration(dataType as string);
+    await zteCache.createOrUpdateWeatherData(
       actualCityId,
       dataType as string,
       cachedData,
-      cacheDuration,
-      appType
+      cacheDuration
     );
-    console.log('Updated Prisma cache for', actualCityId, dataType, appType);
+    console.log('Updated ZTE cache for', actualCityId, dataType);
 
     res.set('Content-Type', 'application/xml');
     res.send(cachedData);
@@ -131,11 +127,13 @@ async function handleWeatherRequest(
       now: {
         temp: '0',
         icon: '100',
+        text: 'Unknown',
         humidity: '0',
         pressure: '0',
         windDir: '0',
         windSpeed: '0',
         windScale: '0',
+        obsTime: new Date().toISOString(),
         updateTime: new Date().toISOString(),
       },
       forecast: {
@@ -172,16 +170,15 @@ async function handleWeatherRequest(
   cache.set(cacheKey, xmlData);
   console.log('Data cached in memory for', cacheKey);
 
-  // 缓存数据到Prisma
-  const cacheDuration = await prismaCache.getCacheDuration(dataType as string);
-  await prismaCache.createOrUpdateWeatherData(
+  // 缓存数据到ZTE数据库
+  const cacheDuration = await zteCache.getCacheDuration(dataType as string);
+  await zteCache.createOrUpdateWeatherData(
     actualCityId,
     dataType as string,
     xmlData,
-    cacheDuration,
-    appType
+    cacheDuration
   );
-  console.log('Data cached in Prisma for', actualCityId, dataType, appType);
+  console.log('Data cached in ZTE database for', actualCityId, dataType);
 
   res.set('Content-Type', 'application/xml');
   res.send(xmlData);

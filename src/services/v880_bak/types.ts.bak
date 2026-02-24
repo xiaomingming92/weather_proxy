@@ -1,0 +1,236 @@
+// V880天气服务 - 类型定义
+// 从 src/types/index.ts 中提取的V880相关类型
+
+/**
+ * 数据类型枚举 - V880专用
+ */
+export enum V880DataType {
+  // WeatherWidget 类型
+  CURRENT_WEATHER_V3 = 'ztev3widgetskall', // Widget 实况（完整版）
+  FORECAST_WEATHER_V3 = 'ztev3widgetcfall', // Widget 预报（完整版）
+
+  // WeatherTV Widget 类型
+  WIDGET_SK = 'ztewidgetsk', // Widget 实况（简化版）
+  WIDGET_CF = 'ztewidgetcf', // Widget 预报（简化版）
+
+  // WeatherTV 主类型
+  MAIN_DATA = 'zte', // 主天气数据（完整）
+
+  // 城市列表
+  CITY_LIST = 'allcity', // 城市列表
+}
+
+/**
+ * 应用类型枚举 - V880专用
+ */
+export enum V880AppType {
+  WEATHER_WIDGET = 'weatherwidget',
+  WEATHER_TV = 'weathertv',
+  UNKNOWN = 'unknown',
+}
+
+/**
+ * 天气数据接口 - V880格式
+ */
+export interface V880WeatherData {
+  now?: {
+    temp: string;
+    icon: string;
+    updateTime: string;
+    humidity?: string;
+    pressure?: string;
+    windSpeed?: string;
+    windDir?: string;
+    windScale?: string;
+    vis?: string;
+    feelsLike?: string;
+    dew?: string;
+    cloud?: string;
+    precip?: string;
+    uvIndex?: string;
+  };
+
+  forecast?: {
+    daily?: Array<{
+      fxDate: string;
+      tempMin: string;
+      tempMax: string;
+      iconDay: string;
+      iconNight?: string;
+      textDay?: string;
+      textNight?: string;
+      wind360Day?: string;
+      wind360Night?: string;
+      windDirDay?: string;
+      windDirNight?: string;
+      windScaleDay?: string;
+      windScaleNight?: string;
+      windSpeedDay?: string;
+      windSpeedNight?: string;
+      humidity?: string;
+      precip?: string;
+      pressure?: string;
+      vis?: string;
+      cloud?: string;
+      uvIndex?: string;
+      sunrise?: string;
+      sunset?: string;
+      week?: string;
+    }>;
+    updateTime: string;
+  };
+
+  hourly?: {
+    hourly?: Array<{
+      fxTime: string;
+      temp: string;
+      icon: string;
+      text: string;
+      wind360: string;
+      windDir: string;
+      windScale: string;
+      windSpeed: string;
+      humidity: string;
+      precip: string;
+      pressure: string;
+      vis: string;
+      cloud: string;
+      dew: string;
+    }>;
+    updateTime: string;
+  };
+
+  indices?: {
+    daily?: Array<{
+      date: string;
+      type: string;
+      name: string;
+      category: string;
+      text: string;
+      level?: string;
+    }>;
+    updateTime: string;
+  };
+
+  city?: {
+    id: string;
+    name: string;
+    sunrise?: string;
+    sunset?: string;
+    stationId?: string;
+    longitude?: string;
+    latitude?: string;
+    postcode?: string;
+  };
+
+  advertisement?: {
+    cfFlag?: string;
+    skFlag?: string;
+    zuFlag?: string;
+  };
+
+  updateTime?: string;
+}
+
+/**
+ * XML头部
+ */
+export const V880_XML_HEADER = '<?xml version="1.0" encoding="utf-8"?>';
+
+/**
+ * 风向转换映射：中文风向 -> 数字代码
+ * 基于 DecodeData.smali 逆向代码
+ */
+export const V880_WIND_DIR_MAP: Record<string, string> = {
+  无: '0',
+  无风向: '0',
+  东北风: '1',
+  东风: '2',
+  东南风: '3',
+  南风: '4',
+  西南风: '5',
+  西风: '6',
+  西北风: '7',
+  北风: '8',
+  旋风: '9',
+};
+
+/**
+ * 天气代码映射：和风 -> V880
+ * 基于 WeatherWidget 的解码逻辑
+ */
+export const V880_WEATHER_CODE_MAP: Record<string, string> = {
+  '100': '0', // 晴
+  '101': '1', // 多云
+  '102': '2', // 少云
+  '103': '3', // 晴间多云
+  '104': '4', // 阴
+  '150': '5', // 晴（夜间）
+  '151': '6', // 多云（夜间）
+  '152': '7', // 阴（夜间）
+  '300': '8', // 阵雨
+  '301': '9', // 强阵雨
+  '302': '10', // 雷阵雨
+  '303': '11', // 强雷阵雨
+  '304': '12', // 雷阵雨伴有冰雹
+  '305': '13', // 小雨
+  '306': '14', // 中雨
+  '307': '15', // 大雨
+  '308': '16', // 极端降雨
+  '309': '17', // 毛毛雨
+  '310': '18', // 暴雨
+  '311': '19', // 大暴雨
+  '312': '20', // 特大暴雨
+  '313': '21', // 冻雨
+  '314': '22', // 小到中雨
+  '315': '23', // 中到大雨
+  '316': '24', // 大到暴雨
+  '317': '25', // 暴雨到大暴雨
+  '318': '26', // 大暴雨到特大暴雨
+  '400': '27', // 小雪
+  '401': '28', // 中雪
+  '402': '29', // 大雪
+  '403': '30', // 暴雪
+  '404': '31', // 雨夹雪
+  '405': '32', // 雨雪天气
+  '406': '33', // 阵雨夹雪
+  '407': '34', // 阵雪
+  '500': '35', // 薄雾
+  '501': '35', // 雾
+  '502': '35', // 霾
+  '503': '35', // 浓雾
+  '504': '35', // 强浓雾
+  '507': '35', // 中度霾
+  '508': '35', // 重度霾
+  '600': '2', // 轻风/微风 -> 多云
+  '601': '2', // 和风 -> 多云
+  '602': '33', // 强风/劲风 -> 飑
+  '700': '18', // 霾
+  '701': '18', // 霾
+  '702': '18', // 霾
+  '703': '18', // 霾
+  '704': '18', // 霾
+  '705': '18', // 霾
+  '706': '18', // 霾
+  '707': '18', // 霾
+  '708': '18', // 霾
+  '800': '21', // 浮尘
+  '801': '30', // 扬沙
+  '802': '31', // 沙尘暴
+  '803': '32', // 强沙尘暴
+  '804': '32', // 强沙尘暴
+};
+
+/**
+ * 获取V880天气代码
+ */
+export function getV880WeatherCode(qweatherCode: string): string {
+  return V880_WEATHER_CODE_MAP[qweatherCode] || '0';
+}
+
+/**
+ * 转换风向
+ */
+export function convertV880WindDir(windDir: string): string {
+  return V880_WIND_DIR_MAP[windDir] || '0';
+}

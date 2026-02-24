@@ -1,8 +1,23 @@
+// ⚠️ 废弃警告 (Deprecated)
+// 本文件已被拆分，请使用以下新服务：
+// - ZTE 设备: @/services/cache/zte-cache.ts
+// - HTC 设备: @/services/cache/htc-cache.ts
+//
+// 保留本文件仅用于向后兼容，将在未来版本移除。
+
+// ⚠️ 废弃警告 (Deprecated)
+// 此文件已被废弃，请使用新的缓存服务：
+// - ZTE: src/services/cache/zte-cache.ts
+// - HTC: src/services/cache/htc-cache.ts
+// - 策略模式: src/services/cache/cache-strategy.ts
+//
+// 保留此文件仅用于向后兼容，将在后续版本中删除。
+
 // Prisma缓存服务实现
 // 支持实时查询和多天预警缓存策略
 
 // 导入数据库配置
-import prisma from '../config/database.js';
+import prisma from '@/config/database.js';
 
 // 定义城市类型接口
 interface City {

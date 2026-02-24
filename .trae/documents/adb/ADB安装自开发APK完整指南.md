@@ -3,7 +3,7 @@
  * @Date         : 2026-02-12 15:34:33
  * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
  * @LastEditTime : 2026-02-12 15:37:55
- * @FilePath     : \decompile\weather_proxy\.trae\documents\adb安装过程.md
+ * @FilePath     : \decompile\weather_proxy\.trae\documents\adb\ADB安装自开发APK完整指南.md
  * @Description  : ADB安装自开发APK的完整指南
 -->
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import dataTransform from './data-transform.js';
+import dataTransform from './zte/data-transform.js';
 import { DataType, AppType, WeatherData } from '../types/index.js';
 
 describe('DataTransform', () => {
@@ -164,7 +164,7 @@ describe('DataTransform', () => {
       expect(xml).toContain('</CF>');
     });
 
-    it('should include ZU node with Period wrapper and Type elements', () => {
+    it('should include ZU node with Type elements directly', () => {
       const xml = dataTransform.toWidgetXml(
         mockWeatherData,
         DataType.MAIN_DATA,
@@ -172,10 +172,8 @@ describe('DataTransform', () => {
       );
 
       expect(xml).toContain('<ZU ReportTime=');
-      expect(xml).toContain('<Period Timestart=');
       expect(xml).toContain('<Type Name="CY" Val="1">建议穿薄型T恤衫</Type>');
       expect(xml).toContain('<Type Name="GM" Val="1">较易感冒</Type>');
-      expect(xml).toContain('</Period>');
       expect(xml).toContain('</ZU>');
     });
 
@@ -543,6 +541,7 @@ describe('DataTransform', () => {
               tempMin: '15',
               tempMax: '25',
               iconDay: '100',
+              iconNight: '150',
               windDirDay: '西北风', // 中文风向
               windScaleDay: '3',
             },
@@ -613,6 +612,7 @@ describe('DataTransform', () => {
           updateTime: '2024-01-01T12:00:00+08:00',
         },
         forecast: { daily: [], updateTime: '2024-01-01T12:00:00+08:00' },
+        city: { id: '1', name: '' },
       };
 
       const xml = dataTransform.toWidgetXml(

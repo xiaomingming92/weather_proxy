@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { config } from '../config/index.js';
+import { config } from '@/config/index.js';
 import { SignJWT, importPKCS8 } from 'jose';
 import fs from 'fs';
-import { env } from '../config/env.js';
-import prismaCache from './prisma-cache.js';
-import { WeatherData } from '../types/index.js';
+import { env } from '@/config/env.js';
+import { zteCache } from './cache/index.js';
+import { WeatherData } from '@/types/index.js';
 
 // 定义JWT配置接口
 interface JwtConfig {
@@ -178,7 +178,11 @@ class WeatherApi {
 
       console.log('Weather data retrieved successfully');
       return {
-        now: nowWeather.now,
+        // 将 obsTime 映射到 updateTime 以兼容 V880
+        now: {
+          ...nowWeather.now,
+          updateTime: nowWeather.now.obsTime,
+        },
         forecast: forecast,
         hourly: hourlyForecast,
         indices: weatherIndices,
@@ -196,7 +200,7 @@ class WeatherApi {
 
   private async getCityId(cityName: string) {
     // 检查缓存
-    const cachedCity = await prismaCache.getCityByName(cityName);
+    const cachedCity = await zteCache.getCityByName(cityName);
     if (cachedCity) {
       console.log('Using cached city ID for:', cityName);
       // 返回与API响应格式相同的对象
@@ -242,7 +246,7 @@ class WeatherApi {
       // 缓存城市信息
       if (response.data.location && response.data.location.length > 0) {
         const cityInfo = response.data.location[0];
-        await prismaCache.createCity(cityInfo.name, cityInfo.id);
+        await zteCache.createCity(cityInfo.name, cityInfo.id);
         console.log('Cached city info for:', cityInfo.name);
       }
 

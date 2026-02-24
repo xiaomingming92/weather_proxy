@@ -1,6 +1,6 @@
 // 天气代码映射 - 增强版，确保与WeatherWidget完全匹配
-import { utcToLocalTime } from '../utils/time-utils.js';
-import { DataType, AppType, WeatherData } from '../types/index.js';
+import { utcToLocalTime } from '@/utils/time-utils.js';
+import { DataType, AppType, WeatherData } from '@/types/index.js';
 
 // 风向转换映射：中文风向 -> 数字代码
 // 基于 DecodeData.smali 逆向代码：
