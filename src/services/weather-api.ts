@@ -199,6 +199,19 @@ class WeatherApi {
   }
 
   private async getCityId(cityName: string) {
+    // 如果入参是纯数字（已经是城市ID），直接返回
+    if (/^\d+$/.test(cityName)) {
+      console.log('Input is already a city ID:', cityName);
+      return {
+        location: [
+          {
+            id: cityName,
+            name: cityName,
+          },
+        ],
+      };
+    }
+
     // 检查缓存
     const cachedCity = await zteCache.getCityByName(cityName);
     if (cachedCity) {
