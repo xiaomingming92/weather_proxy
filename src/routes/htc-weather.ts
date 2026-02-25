@@ -140,7 +140,8 @@ router.get('/htc/lat-lon-search.asp', async (req, res) => {
     console.log('[HTC] Searching location:', lat, lon);
 
     // 调用和风天气API（通过经纬度）
-    const locationData = await weatherApi.getWeather(`${lat},${lon}`);
+    // 注意：和风天气API使用 经度,纬度 格式
+    const locationData = await weatherApi.getWeather(`${lon},${lat}`);
     console.log('[HTC] Location data received:', locationData.city?.name);
 
     // 转换为 HTC 格式并生成 XML

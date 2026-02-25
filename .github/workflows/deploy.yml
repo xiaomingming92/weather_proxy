@@ -1,10 +1,10 @@
 # 工作流名称
 name: Auto Deploy weather_proxy Service
 
-# 触发条件：推送到 master/main 分支时触发（根据你的分支名调整）
+# 触发条件：推送到 main 或 feature/htc-v1 分支时触发
 on:
   push:
-    branches: [main]
+    branches: [main, feature/htc-v1]
 
 # 执行的任务
 jobs:
@@ -37,7 +37,9 @@ jobs:
             export VOLTA_HOME="$HOME/.volta"
             export PATH="$VOLTA_HOME/bin:$PATH"
             cd $HOME/Sites/weather_proxy
-            git pull origin main
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
             export HUSKY=0
             npm ci
             # Prisma 数据库迁移
