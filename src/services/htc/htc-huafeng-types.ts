@@ -418,16 +418,34 @@ export const XML_HEADER = '<?xml version="1.0" encoding="utf-8"?>';
 /** 预报天数 */
 export const FORECAST_DAYS = 5;
 
-/** 默认城市代码映射（华风代码 -> 城市名称） */
-export const HUAFENG_CITY_CODE_MAP: Record<string, string> = {
-  '01011712': '南京',
-  '01011713': '北京',
-  '01011714': '上海',
-  '01011715': '广州',
-  '01011716': '深圳',
-  '01011717': '杭州',
-  '01011718': '成都',
-  '01011719': '武汉',
-  '01011720': '西安',
-  '01011721': '重庆',
-};
+import huafengCityCodes from './huafeng-city-codes-from-source.json' with { type: 'json' };
+
+/**
+ * 从JSON文件加载城市代码映射
+ * 将分层结构扁平化为单一映射表（代码 -> 城市名）
+ */
+function loadCityCodeMap(): Record<string, string> {
+  const map: Record<string, string> = {};
+
+  for (const [province, cities] of Object.entries(huafengCityCodes)) {
+    // 跳过元数据字段
+    if (province.startsWith('_')) continue;
+
+    if (typeof cities === 'object' && cities !== null) {
+      // 处理嵌套的省份对象，反转键值对（代码 -> 城市名）
+      for (const [cityName, cityCode] of Object.entries(cities)) {
+        if (typeof cityCode === 'string') {
+          map[cityCode] = cityName;
+        }
+      }
+    } else if (typeof cities === 'string') {
+      // 处理直辖市等直接映射的情况，反转键值对
+      map[cities] = province;
+    }
+  }
+
+  return map;
+}
+
+/** 城市代码映射（华风代码 -> 城市名称） */
+export const HUAFENG_CITY_CODE_MAP: Record<string, string> = loadCityCodeMap();
