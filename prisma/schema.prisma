@@ -36,9 +36,9 @@ model ZteCity {
 }
 
 // ============================================
-// HTC 城市表（独立）
+// HTC AccuWeather 城市表（国际版）
 // ============================================
-model HtcCity {
+model HtcAccuCity {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   cityId    String   @unique  // 和风API城市ID
@@ -73,9 +73,9 @@ model ZteWeatherCache {
 }
 
 // ============================================
-// HTC 缓存表（独立）
+// HTC AccuWeather 缓存表（国际版）
 // ============================================
-model HtcWeatherCache {
+model HtcAccuWeatherCache {
   id            Int      @id @default(autoincrement())
   cityId        String
   endpoint      String   // forecast-data_v3, city-find, lat-lon-search, weather-data
@@ -104,11 +104,56 @@ model ZteCachePolicy {
 }
 
 // ============================================
-// HTC 缓存策略配置
+// HTC AccuWeather 缓存策略配置（国际版）
 // ============================================
-model HtcCachePolicy {
+model HtcAccuCachePolicy {
   id          Int      @id @default(autoincrement())
   endpoint    String   @unique
+  duration    Int      // 缓存时长（分钟）
+  description String?
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// HTC华风天气（国行HTC）缓存表
+// ============================================
+model HTCHuaFengWeatherCache {
+  id            Int      @id @default(autoincrement())
+  cityCode      String   // 华风城市代码（如：01011712）
+  xmlData       String   @db.Text
+  timestamp     BigInt
+  expiresAt     BigInt
+  cacheDuration Int      @default(30)
+  createdAt     BigInt
+  updatedAt     BigInt
+
+  @@unique([cityCode])
+  @@index([expiresAt])
+}
+
+// ============================================
+// HTC华风天气城市表（国行HTC专用）
+// ============================================
+model HTCHuaFengCity {
+  id          Int      @id @default(autoincrement())
+  cityCode    String   @unique  // 华风城市代码（如：01011712）
+  name        String   // 城市名称
+  qweatherId  String?  // 对应和风天气城市ID
+  latitude    String?
+  longitude   String?
+  province    String?  // 省份
+  country     String?  @default("中国")
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// HTC华风天气缓存策略配置（国行HTC专用）
+// ============================================
+model HtcHuaFengCachePolicy {
+  id          Int      @id @default(autoincrement())
+  dataType    String   @unique  // CF, SK 等
   duration    Int      // 缓存时长（分钟）
   description String?
   createdAt   BigInt

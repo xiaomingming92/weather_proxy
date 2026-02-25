@@ -173,6 +173,34 @@ export interface CachePolicy {
   description?: string;
 }
 
+/**
+ * 通用天气数据格式
+ * 用于和风天气API返回的数据结构
+ * 各设备类型（ZTE、HTC Accu、HTC HuaFeng）都有自己的转换器将其转换为特定格式
+ */
+export interface WeatherData {
+  code?: string;
+  location?: CityInfo[];
+  now: CurrentWeather;
+  forecast?: {
+    daily: DailyForecast[];
+    updateTime: string;
+  };
+  daily?: DailyForecast[];
+  hourly?: {
+    hourly: HourlyForecast[];
+    updateTime: string;
+  };
+  indices?: {
+    daily: WeatherIndex[];
+    updateTime: string;
+  };
+  city?: CityInfo;
+  updateTime?: string;
+}
+
 // 导出设备专用类型
 export * from './zte.js';
-export * from './htc.js';
+// HTC类型已从 htc.ts 拆分为 htc-accu.ts 和 htc-huafeng.ts
+export * from './htc-accu.js';
+export * from './htc-huafeng.js';

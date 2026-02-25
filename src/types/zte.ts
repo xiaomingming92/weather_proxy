@@ -72,33 +72,3 @@ export interface ZteWeatherData {
   };
   updateTime?: string;
 }
-
-/**
- * 兼容类型（用于过渡期）
- * @deprecated 建议使用 ZteWeatherData
- */
-export interface WeatherData {
-  code?: string;
-  location?: CityInfo[];
-  now: CurrentWeather;
-  forecast?: {
-    daily: DailyForecast[];
-    updateTime: string;
-  };
-  daily?: DailyForecast[];
-  hourly?: {
-    hourly: HourlyForecast[];
-    updateTime: string;
-  };
-  indices?: {
-    daily: WeatherIndex[];
-    updateTime: string;
-  };
-  city: CityInfo;
-  advertisement?: {
-    cfFlag?: string;
-    skFlag?: string;
-    zuFlag?: string;
-  };
-  updateTime?: string;
-}

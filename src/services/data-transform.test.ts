@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import dataTransform from './zte/data-transform.js';
-import { DataType, AppType, WeatherData } from '../types/index.js';
+import { DataType, AppType } from '../types/index.js';
+import type { ZteWeatherData } from '../types/zte.js';
 
 describe('DataTransform', () => {
-  const mockWeatherData: WeatherData = {
+  const mockWeatherData: ZteWeatherData = {
     now: {
       temp: '25',
       icon: '100',
@@ -400,7 +401,7 @@ describe('DataTransform', () => {
 
   describe('Weather Code Mapping', () => {
     it('should map weather icons to correct codes', () => {
-      const testData: WeatherData = {
+      const testData: ZteWeatherData = {
         now: {
           temp: '25',
           icon: '100',
@@ -419,7 +420,7 @@ describe('DataTransform', () => {
     });
 
     it('should map cloudy weather to code 1', () => {
-      const testData: WeatherData = {
+      const testData: ZteWeatherData = {
         now: {
           temp: '20',
           icon: '101',
@@ -440,7 +441,7 @@ describe('DataTransform', () => {
 
   describe('Wind Direction Conversion', () => {
     it('should convert Chinese wind direction to numeric code', () => {
-      const testData: WeatherData = {
+      const testData: ZteWeatherData = {
         now: {
           temp: '25',
           icon: '100',
@@ -464,7 +465,7 @@ describe('DataTransform', () => {
     });
 
     it('should handle numeric wind direction as-is', () => {
-      const testData: WeatherData = {
+      const testData: ZteWeatherData = {
         now: {
           temp: '25',
           icon: '100',
@@ -503,7 +504,7 @@ describe('DataTransform', () => {
       ];
 
       for (const test of windDirTests) {
-        const testData: WeatherData = {
+        const testData: ZteWeatherData = {
           now: {
             temp: '25',
             icon: '100',
@@ -528,7 +529,7 @@ describe('DataTransform', () => {
     });
 
     it('should convert wind direction in forecast data', () => {
-      const testData: WeatherData = {
+      const testData: ZteWeatherData = {
         now: {
           temp: '25',
           icon: '100',
@@ -562,7 +563,7 @@ describe('DataTransform', () => {
 
   describe('Edge Cases', () => {
     it('should handle missing optional fields gracefully', () => {
-      const minimalData: WeatherData = {
+      const minimalData: ZteWeatherData = {
         now: {
           temp: '20',
           icon: '100',
@@ -584,7 +585,7 @@ describe('DataTransform', () => {
     });
 
     it('should handle empty forecast data', () => {
-      const noForecastData: WeatherData = {
+      const noForecastData: ZteWeatherData = {
         now: {
           temp: '20',
           icon: '100',
@@ -605,7 +606,7 @@ describe('DataTransform', () => {
     });
 
     it('should handle missing city data', () => {
-      const noCityData: WeatherData = {
+      const noCityData: ZteWeatherData = {
         now: {
           temp: '20',
           icon: '100',

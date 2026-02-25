@@ -1,6 +1,6 @@
 /**
- * HTC天气服务路由
- * 完全独立的HTC天气API端点
+ * HTC AccuWeather 国际版天气服务路由
+ * 完全独立的HTC AccuWeather API端点
  */
 
 import express from 'express';
@@ -11,19 +11,20 @@ import {
   validateWeatherDataRequest,
   parseLocCode,
 } from '@/services/htc/validator.js';
-import { HtcDataTransform } from '@/services/htc/data-transform.js';
+import { HTCAccuDataTransform } from '@/services/htc/htc-accu-data-transform.js';
 import weatherApi from '@/services/weather-api.js';
-import { htcCache } from '@/services/cache/index.js';
-import { WeatherData, HtcWeatherData } from '@/types/index.js';
+import { htcAccuCache } from '@/services/cache/index.js';
+import { HTCAccuWeatherData } from '@/services/htc/htc-accu-types.js';
+import { WeatherData } from '@/types/index.js';
 
 const router = express.Router();
-const htcDataTransform = new HtcDataTransform();
+const htcAccuDataTransform = new HTCAccuDataTransform();
 
 /**
- * 将 WeatherData 转换为 HtcWeatherData
+ * 将 WeatherData 转换为 HTCAccuWeatherData
  * 适配器函数：处理类型差异
  */
-function toHtcWeatherData(weatherData: WeatherData): HtcWeatherData {
+function toHTCAccuWeatherData(weatherData: WeatherData): HTCAccuWeatherData {
   return {
     code: '200', // 默认成功码
     location: weatherData.city ? [weatherData.city] : undefined,
@@ -38,17 +39,17 @@ function toHtcWeatherData(weatherData: WeatherData): HtcWeatherData {
  */
 router.get('/htc/forecast-data_v3.asp', async (req, res) => {
   try {
-    console.log('[HTC] Forecast request:', req.query);
+    console.log('[HTC-Accu] Forecast request:', req.query);
 
     // 参数校验
     const validation = validateForecastRequest(req.query);
     if (!validation.valid) {
-      console.log('[HTC] Validation failed:', validation.error);
+      console.log('[HTC-Accu] Validation failed:', validation.error);
       res.set('Content-Type', 'text/xml');
       res
         .status(400)
         .send(
-          htcDataTransform.generateErrorXml(
+          htcAccuDataTransform.generateErrorXml(
             validation.error || 'Invalid request'
           )
         );
@@ -58,25 +59,27 @@ router.get('/htc/forecast-data_v3.asp', async (req, res) => {
     const { loccode } = req.query as { loccode: string };
     const cityName = parseLocCode(loccode);
 
-    console.log('[HTC] Parsed city name:', cityName);
+    console.log('[HTC-Accu] Parsed city name:', cityName);
 
     // 获取城市信息（用于缓存）
     const cityInfo = await weatherApi.getWeather(cityName);
     if (!cityInfo.city) {
-      console.log('[HTC] City not found:', cityName);
+      console.log('[HTC-Accu] City not found:', cityName);
       res.set('Content-Type', 'text/xml');
-      res.status(404).send(htcDataTransform.generateErrorXml('City not found'));
+      res
+        .status(404)
+        .send(htcAccuDataTransform.generateErrorXml('City not found'));
       return;
     }
     const cityId = cityInfo.city.id;
 
     // 检查HTC缓存
-    const cachedData = await htcCache.getWeatherData(
+    const cachedData = await htcAccuCache.getWeatherData(
       cityId,
       'forecast-data_v3'
     );
     if (cachedData) {
-      console.log('[HTC] Returning cached data for', cityId);
+      console.log('[HTC-Accu] Returning cached data for', cityId);
       res.set('Content-Type', 'text/xml');
       res.send(cachedData.xmlData);
       return;
@@ -84,31 +87,32 @@ router.get('/htc/forecast-data_v3.asp', async (req, res) => {
 
     // 调用和风天气API
     const weatherData = await weatherApi.getWeather(cityName);
-    console.log('[HTC] Weather data received:', weatherData.city?.name);
+    console.log('[HTC-Accu] Weather data received:', weatherData.city?.name);
 
     // 转换为 HTC 格式并生成 XML
-    const htcData = toHtcWeatherData(weatherData);
-    const xml = htcDataTransform.generateForecastXml(htcData, cityName);
-    console.log('[HTC] Generated XML length:', xml.length);
+    const htcData = toHTCAccuWeatherData(weatherData);
+    const xml = htcAccuDataTransform.generateForecastXml(htcData, cityName);
+    console.log('[HTC-Accu] Generated XML length:', xml.length);
 
     // 缓存数据
-    const cacheDuration = await htcCache.getCacheDuration('forecast-data_v3');
-    await htcCache.createOrUpdateWeatherData(
+    const cacheDuration =
+      await htcAccuCache.getCacheDuration('forecast-data_v3');
+    await htcAccuCache.createOrUpdateWeatherData(
       cityId,
       'forecast-data_v3',
       xml,
       cacheDuration
     );
-    console.log('[HTC] Data cached for', cityId);
+    console.log('[HTC-Accu] Data cached for', cityId);
 
     res.set('Content-Type', 'text/xml');
     res.send(xml);
   } catch (error) {
-    console.error('[HTC] Forecast error:', error);
+    console.error('[HTC-Accu] Forecast error:', error);
     res.set('Content-Type', 'text/xml');
     res
       .status(500)
-      .send(htcDataTransform.generateErrorXml('Internal server error'));
+      .send(htcAccuDataTransform.generateErrorXml('Internal server error'));
   }
 });
 
@@ -118,17 +122,17 @@ router.get('/htc/forecast-data_v3.asp', async (req, res) => {
  */
 router.get('/htc/lat-lon-search.asp', async (req, res) => {
   try {
-    console.log('[HTC] LatLon search request:', req.query);
+    console.log('[HTC-Accu] LatLon search request:', req.query);
 
     // 参数校验
     const validation = validateLatLonSearchRequest(req.query);
     if (!validation.valid) {
-      console.log('[HTC] Validation failed:', validation.error);
+      console.log('[HTC-Accu] Validation failed:', validation.error);
       res.set('Content-Type', 'text/xml');
       res
         .status(400)
         .send(
-          htcDataTransform.generateErrorXml(
+          htcAccuDataTransform.generateErrorXml(
             validation.error || 'Invalid request'
           )
         );
@@ -137,26 +141,26 @@ router.get('/htc/lat-lon-search.asp', async (req, res) => {
 
     const { lat, lon } = req.query as { lat: string; lon: string };
 
-    console.log('[HTC] Searching location:', lat, lon);
+    console.log('[HTC-Accu] Searching location:', lat, lon);
 
     // 调用和风天气API（通过经纬度）
     // 注意：和风天气API使用 经度,纬度 格式
     const locationData = await weatherApi.getWeather(`${lon},${lat}`);
-    console.log('[HTC] Location data received:', locationData.city?.name);
+    console.log('[HTC-Accu] Location data received:', locationData.city?.name);
 
     // 转换为 HTC 格式并生成 XML
-    const htcLocationData = toHtcWeatherData(locationData);
-    const xml = htcDataTransform.generateLocationXml(htcLocationData, '0');
-    console.log('[HTC] Generated XML length:', xml.length);
+    const htcLocationData = toHTCAccuWeatherData(locationData);
+    const xml = htcAccuDataTransform.generateLocationXml(htcLocationData, '0');
+    console.log('[HTC-Accu] Generated XML length:', xml.length);
 
     res.set('Content-Type', 'text/xml');
     res.send(xml);
   } catch (error) {
-    console.error('[HTC] LatLon search error:', error);
+    console.error('[HTC-Accu] LatLon search error:', error);
     res.set('Content-Type', 'text/xml');
     res
       .status(500)
-      .send(htcDataTransform.generateErrorXml('Internal server error'));
+      .send(htcAccuDataTransform.generateErrorXml('Internal server error'));
   }
 });
 
@@ -166,17 +170,17 @@ router.get('/htc/lat-lon-search.asp', async (req, res) => {
  */
 router.get('/htc2/city-find.asp', async (req, res) => {
   try {
-    console.log('[HTC] City find request:', req.query);
+    console.log('[HTC-Accu] City find request:', req.query);
 
     // 参数校验
     const validation = validateCityFindRequest(req.query);
     if (!validation.valid) {
-      console.log('[HTC] Validation failed:', validation.error);
+      console.log('[HTC-Accu] Validation failed:', validation.error);
       res.set('Content-Type', 'text/xml');
       res
         .status(400)
         .send(
-          htcDataTransform.generateErrorXml(
+          htcAccuDataTransform.generateErrorXml(
             validation.error || 'Invalid request'
           )
         );
@@ -185,25 +189,25 @@ router.get('/htc2/city-find.asp', async (req, res) => {
 
     const { q } = req.query as { q: string };
 
-    console.log('[HTC] Searching city:', q);
+    console.log('[HTC-Accu] Searching city:', q);
 
     // 调用和风天气API（城市搜索）
     const searchData = await weatherApi.getWeather(q);
-    console.log('[HTC] Search data received');
+    console.log('[HTC-Accu] Search data received');
 
     // 转换为 HTC 格式并生成 XML
-    const htcSearchData = toHtcWeatherData(searchData);
-    const xml = htcDataTransform.generateCitySearchXml(htcSearchData);
-    console.log('[HTC] Generated XML length:', xml.length);
+    const htcSearchData = toHTCAccuWeatherData(searchData);
+    const xml = htcAccuDataTransform.generateCitySearchXml(htcSearchData);
+    console.log('[HTC-Accu] Generated XML length:', xml.length);
 
     res.set('Content-Type', 'text/xml');
     res.send(xml);
   } catch (error) {
-    console.error('[HTC] City find error:', error);
+    console.error('[HTC-Accu] City find error:', error);
     res.set('Content-Type', 'text/xml');
     res
       .status(500)
-      .send(htcDataTransform.generateErrorXml('Internal server error'));
+      .send(htcAccuDataTransform.generateErrorXml('Internal server error'));
   }
 });
 
@@ -213,17 +217,17 @@ router.get('/htc2/city-find.asp', async (req, res) => {
  */
 router.get('/htc2/weather-data.asp', async (req, res) => {
   try {
-    console.log('[HTC] Weather data request:', req.query);
+    console.log('[HTC-Accu] Weather data request:', req.query);
 
     // 参数校验
     const validation = validateWeatherDataRequest(req.query);
     if (!validation.valid) {
-      console.log('[HTC] Validation failed:', validation.error);
+      console.log('[HTC-Accu] Validation failed:', validation.error);
       res.set('Content-Type', 'text/xml');
       res
         .status(400)
         .send(
-          htcDataTransform.generateErrorXml(
+          htcAccuDataTransform.generateErrorXml(
             validation.error || 'Invalid request'
           )
         );
@@ -232,25 +236,28 @@ router.get('/htc2/weather-data.asp', async (req, res) => {
 
     const { city } = req.query as { city: string };
 
-    console.log('[HTC] Getting weather for city:', city);
+    console.log('[HTC-Accu] Getting weather for city:', city);
 
     // 调用和风天气API
     const weatherData = await weatherApi.getWeather(city);
-    console.log('[HTC] Weather data received:', weatherData.city?.name);
+    console.log('[HTC-Accu] Weather data received:', weatherData.city?.name);
 
     // 转换为 HTC 格式并生成 XML
-    const htcWeatherData = toHtcWeatherData(weatherData);
-    const xml = htcDataTransform.generateWeatherDataXml(htcWeatherData, city);
-    console.log('[HTC] Generated XML length:', xml.length);
+    const htcWeatherData = toHTCAccuWeatherData(weatherData);
+    const xml = htcAccuDataTransform.generateWeatherDataXml(
+      htcWeatherData,
+      city
+    );
+    console.log('[HTC-Accu] Generated XML length:', xml.length);
 
     res.set('Content-Type', 'text/xml');
     res.send(xml);
   } catch (error) {
-    console.error('[HTC] Weather data error:', error);
+    console.error('[HTC-Accu] Weather data error:', error);
     res.set('Content-Type', 'text/xml');
     res
       .status(500)
-      .send(htcDataTransform.generateErrorXml('Internal server error'));
+      .send(htcAccuDataTransform.generateErrorXml('Internal server error'));
   }
 });
 

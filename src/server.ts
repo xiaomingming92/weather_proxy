@@ -1,7 +1,8 @@
 import express from 'express';
 import { config } from './config/index.js';
 import weatherRouter from './routes/weather.js';
-import htcWeatherRouter from './routes/htc-weather.js';
+import htcAccuWeatherRouter from './routes/htc-accu-weather.js';
+import htcHuaFengWeatherRouter from './routes/htc-huafeng-weather.js';
 import configRouter from './routes/config.js';
 import cronService from './services/cron-service.js';
 
@@ -21,7 +22,8 @@ app.use((req, res, next) => {
 
 // 路由
 app.use('/api/weather', weatherRouter);
-app.use('/widget', htcWeatherRouter);
+app.use('/widget', htcAccuWeatherRouter);
+app.use('/getweatheru.asmx', htcHuaFengWeatherRouter);
 app.use('/api/config', configRouter);
 
 // 错误处理中间件

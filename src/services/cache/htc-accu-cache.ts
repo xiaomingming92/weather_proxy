@@ -1,10 +1,10 @@
-// HTC 专用缓存服务
-// 独立于 ZTE 缓存，使用 HtcWeatherCache 表
+// HTC AccuWeather 国际版专用缓存服务
+// 独立于 ZTE 缓存和 HTC HuaFeng 缓存
 
 import prisma from '@/config/database.js';
 
-// HTC 天气数据缓存接口
-interface HtcWeatherCache {
+// HTC AccuWeather 天气数据缓存接口
+interface HTCAccuWeatherCache {
   id: number;
   cityId: string;
   endpoint: string;
@@ -16,8 +16,8 @@ interface HtcWeatherCache {
   updatedAt: bigint;
 }
 
-// HTC 城市接口
-interface HtcCity {
+// HTC AccuWeather 城市接口
+interface HTCAccuCity {
   id: number;
   name: string;
   cityId: string;
@@ -29,29 +29,29 @@ interface HtcCity {
   updatedAt: bigint;
 }
 
-class HtcCacheService {
+class HTCAccuCacheService {
   // ============================================
   // 城市信息缓存
   // ============================================
 
-  async getCityByName(name: string): Promise<HtcCity | null> {
+  async getCityByName(name: string): Promise<HTCAccuCity | null> {
     try {
-      return await prisma.htcCity.findUnique({
+      return await prisma.htcAccuCity.findUnique({
         where: { name },
       });
     } catch (error) {
-      console.error('[HTC] Error getting city by name:', error);
+      console.error('[HTC-Accu] Error getting city by name:', error);
       return null;
     }
   }
 
-  async getCityById(cityId: string): Promise<HtcCity | null> {
+  async getCityById(cityId: string): Promise<HTCAccuCity | null> {
     try {
-      return await prisma.htcCity.findUnique({
+      return await prisma.htcAccuCity.findUnique({
         where: { cityId },
       });
     } catch (error) {
-      console.error('[HTC] Error getting city by id:', error);
+      console.error('[HTC-Accu] Error getting city by id:', error);
       return null;
     }
   }
@@ -65,10 +65,10 @@ class HtcCacheService {
       country?: string;
       state?: string;
     }
-  ): Promise<HtcCity> {
+  ): Promise<HTCAccuCity> {
     try {
       const currentTimestamp = BigInt(Date.now());
-      return await prisma.htcCity.upsert({
+      return await prisma.htcAccuCity.upsert({
         where: { name },
         update: {
           cityId,
@@ -84,7 +84,7 @@ class HtcCacheService {
         },
       });
     } catch (error) {
-      console.error('[HTC] Error creating city:', error);
+      console.error('[HTC-Accu] Error creating city:', error);
       throw error;
     }
   }
@@ -96,9 +96,9 @@ class HtcCacheService {
   async getWeatherData(
     cityId: string,
     endpoint: string
-  ): Promise<HtcWeatherCache | null> {
+  ): Promise<HTCAccuWeatherCache | null> {
     try {
-      const weatherData = await prisma.htcWeatherCache.findUnique({
+      const weatherData = await prisma.htcAccuWeatherCache.findUnique({
         where: {
           cityId_endpoint: { cityId, endpoint },
         },
@@ -108,15 +108,15 @@ class HtcCacheService {
       if (weatherData) {
         const currentTimestamp = BigInt(Date.now());
         if (weatherData.expiresAt > currentTimestamp) {
-          console.log(`[HTC] Cache hit for ${cityId}/${endpoint}`);
-          return weatherData as HtcWeatherCache;
+          console.log(`[HTC-Accu] Cache hit for ${cityId}/${endpoint}`);
+          return weatherData as HTCAccuWeatherCache;
         }
-        console.log(`[HTC] Cache expired for ${cityId}/${endpoint}`);
+        console.log(`[HTC-Accu] Cache expired for ${cityId}/${endpoint}`);
       }
 
       return null;
     } catch (error) {
-      console.error('[HTC] Error getting weather data:', error);
+      console.error('[HTC-Accu] Error getting weather data:', error);
       return null;
     }
   }
@@ -126,12 +126,12 @@ class HtcCacheService {
     endpoint: string,
     xmlData: string,
     expiresInMinutes: number
-  ): Promise<HtcWeatherCache> {
+  ): Promise<HTCAccuWeatherCache> {
     try {
       const timestamp = BigInt(Date.now());
       const expiresAt = timestamp + BigInt(expiresInMinutes * 60 * 1000);
 
-      const weatherData = await prisma.htcWeatherCache.upsert({
+      const weatherData = await prisma.htcAccuWeatherCache.upsert({
         where: {
           cityId_endpoint: { cityId, endpoint },
         },
@@ -153,10 +153,13 @@ class HtcCacheService {
         },
       });
 
-      console.log(`[HTC] Cache updated for ${cityId}/${endpoint}`);
-      return weatherData as HtcWeatherCache;
+      console.log(`[HTC-Accu] Cache updated for ${cityId}/${endpoint}`);
+      return weatherData as HTCAccuWeatherCache;
     } catch (error) {
-      console.error('[HTC] Error creating or updating weather data:', error);
+      console.error(
+        '[HTC-Accu] Error creating or updating weather data:',
+        error
+      );
       throw error;
     }
   }
@@ -190,7 +193,7 @@ class HtcCacheService {
       // 默认缓存时间（30分钟）
       return 30;
     } catch (error) {
-      console.error('[HTC] Error getting cache duration:', error);
+      console.error('[HTC-Accu] Error getting cache duration:', error);
       return 30;
     }
   }
@@ -202,14 +205,16 @@ class HtcCacheService {
   async cleanupExpiredCache(): Promise<void> {
     try {
       const currentTimestamp = BigInt(Date.now());
-      const result = await prisma.htcWeatherCache.deleteMany({
+      const result = await prisma.htcAccuWeatherCache.deleteMany({
         where: {
           expiresAt: { lte: currentTimestamp },
         },
       });
-      console.log(`[HTC] Cleaned up ${result.count} expired cache entries`);
+      console.log(
+        `[HTC-Accu] Cleaned up ${result.count} expired cache entries`
+      );
     } catch (error) {
-      console.error('[HTC] Error cleaning up expired cache:', error);
+      console.error('[HTC-Accu] Error cleaning up expired cache:', error);
     }
   }
 
@@ -219,18 +224,18 @@ class HtcCacheService {
     try {
       let result;
       if (beforeTimestamp) {
-        result = await prisma.htcWeatherCache.deleteMany({
+        result = await prisma.htcAccuWeatherCache.deleteMany({
           where: {
             createdAt: { lte: beforeTimestamp },
           },
         });
       } else {
-        result = await prisma.htcWeatherCache.deleteMany({});
+        result = await prisma.htcAccuWeatherCache.deleteMany({});
       }
-      console.log(`[HTC] Deleted ${result.count} weather data records`);
+      console.log(`[HTC-Accu] Deleted ${result.count} weather data records`);
       return { deletedCount: result.count };
     } catch (error) {
-      console.error('[HTC] Error clearing weather data:', error);
+      console.error('[HTC-Accu] Error clearing weather data:', error);
       throw error;
     }
   }
@@ -239,11 +244,11 @@ class HtcCacheService {
   // 获取有预报缓存的城市列表
   // ============================================
 
-  async getCitiesWithForecastCache(): Promise<HtcCity[]> {
-    const cities: HtcCity[] = [];
+  async getCitiesWithForecastCache(): Promise<HTCAccuCity[]> {
+    const cities: HTCAccuCity[] = [];
     try {
       const currentTimestamp = BigInt(Date.now());
-      const weatherData = await prisma.htcWeatherCache.findMany({
+      const weatherData = await prisma.htcAccuWeatherCache.findMany({
         where: {
           endpoint: 'forecast-data_v3',
           expiresAt: { gt: currentTimestamp },
@@ -255,7 +260,7 @@ class HtcCacheService {
       });
 
       for (const data of weatherData) {
-        const city = await prisma.htcCity.findUnique({
+        const city = await prisma.htcAccuCity.findUnique({
           where: { cityId: data.cityId },
         });
         if (city) {
@@ -263,11 +268,14 @@ class HtcCacheService {
         }
       }
     } catch (error) {
-      console.error('[HTC] Error getting cities with forecast cache:', error);
+      console.error(
+        '[HTC-Accu] Error getting cities with forecast cache:',
+        error
+      );
     }
     return cities;
   }
 }
 
 // 导出单例实例
-export default new HtcCacheService();
+export default new HTCAccuCacheService();

@@ -7,10 +7,13 @@
  * @Description  :
  */
 // 缓存服务统一导出
-// 使用策略模式组织 ZTE 和 HTC 的缓存服务
+// 使用策略模式组织 ZTE、HTC 和HTC华风天气的缓存服务
 
 export { default as zteCache } from './zte-cache.js';
-export { default as htcCache } from './htc-cache.js';
+export { default as htcAccuCache } from './htc-accu-cache.js';
+// 兼容导出
+export { default as htcCache } from './htc-accu-cache.js';
+export { default as htcHuaFengCache } from './htc-huafeng-cache.js';
 export {
   type CacheStrategy,
   type CacheCity,

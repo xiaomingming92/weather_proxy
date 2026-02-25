@@ -4,11 +4,11 @@
  */
 
 import {
-  HtcForecastRequest,
-  HtcLatLonSearchRequest,
-  HtcCityFindRequest,
-  HtcWeatherDataRequest,
-  HTC_API_KEY,
+  HTCAccuForecastRequest,
+  HTCAccuLatLonSearchRequest,
+  HTCAccuCityFindRequest,
+  HTCAccuWeatherDataRequest,
+  HTC_ACCU_API_KEY,
 } from './types.js';
 
 /**
@@ -31,7 +31,7 @@ export function validateForecastRequest(
   if (!ac) {
     return { valid: false, error: 'Missing required parameter: ac' };
   }
-  if (ac !== HTC_API_KEY) {
+  if (ac !== HTC_ACCU_API_KEY) {
     return { valid: false, error: 'Invalid API key' };
   }
 
@@ -64,7 +64,7 @@ export function validateLatLonSearchRequest(
   if (!ac) {
     return { valid: false, error: 'Missing required parameter: ac' };
   }
-  if (ac !== HTC_API_KEY) {
+  if (ac !== HTC_ACCU_API_KEY) {
     return { valid: false, error: 'Invalid API key' };
   }
 

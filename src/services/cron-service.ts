@@ -1,8 +1,9 @@
 import cron from 'node-cron';
-import { zteCache, htcCache } from './cache/index.js';
+import { zteCache, htcAccuCache } from './cache/index.js';
 import weatherApi from './weather-api.js';
 import dataTransform from '@/services/zte/data-transform.js';
-import { HtcWeatherData } from '@/types/index.js';
+import { HTCAccuWeatherData } from '@/services/htc/htc-accu-types.js';
+import type { ZteWeatherData } from '@/types/zte.js';
 
 // 定义城市类型接口
 interface City {
@@ -81,12 +82,12 @@ class CronService {
       '30 * * * *',
       async () => {
         console.log(
-          '[HTC] Starting forecast update task at',
+          '[HTC-Accu] Starting forecast update task at',
           new Date().toISOString()
         );
         await this.updateHtcForecasts();
         console.log(
-          '[HTC] Forecast update task completed at',
+          '[HTC-Accu] Forecast update task completed at',
           new Date().toISOString()
         );
       },
@@ -96,7 +97,7 @@ class CronService {
     );
 
     console.log(
-      '[HTC] Forecast update task scheduled: every hour at minute 30'
+      '[HTC-Accu] Forecast update task scheduled: every hour at minute 30'
     );
   }
 
@@ -131,12 +132,12 @@ class CronService {
       '0 1 * * *',
       async () => {
         console.log(
-          '[HTC] Starting cache cleanup task at',
+          '[HTC-Accu] Starting cache cleanup task at',
           new Date().toISOString()
         );
-        await htcCache.cleanupExpiredCache();
+        await htcAccuCache.cleanupExpiredCache();
         console.log(
-          '[HTC] Cache cleanup task completed at',
+          '[HTC-Accu] Cache cleanup task completed at',
           new Date().toISOString()
         );
       },
@@ -145,7 +146,7 @@ class CronService {
       }
     );
 
-    console.log('[HTC] Cache cleanup task scheduled: every day at 01:00');
+    console.log('[HTC-Accu] Cache cleanup task scheduled: every day at 01:00');
   }
 
   // 更新ZTE预报数据
@@ -166,7 +167,20 @@ class CronService {
           );
 
           // 调用天气API获取最新数据
-          const weatherData = await weatherApi.getWeather(city.cityId);
+          const apiData = await weatherApi.getWeather(city.cityId);
+
+          // 转换为 ZTE 格式
+          const weatherData: ZteWeatherData = {
+            now: apiData.now,
+            forecast: apiData.forecast || {
+              daily: [],
+              updateTime: new Date().toISOString(),
+            },
+            hourly: apiData.hourly,
+            indices: apiData.indices,
+            city: apiData.city || { id: city.cityId, name: city.name },
+            updateTime: apiData.updateTime,
+          };
 
           // 转换数据格式
           const xmlData = dataTransform.toWidgetXml(weatherData, 'ztewidgetcf');
@@ -203,37 +217,37 @@ class CronService {
       const citiesToUpdate = await this.getHtcCitiesWithForecastCache();
 
       console.log(
-        `[HTC] Found ${citiesToUpdate.length} cities to update forecasts for`
+        `[HTC-Accu] Found ${citiesToUpdate.length} cities to update forecasts for`
       );
 
       // 遍历更新每个城市的预报数据
       for (const city of citiesToUpdate) {
         try {
           console.log(
-            `[HTC] Updating forecast for city: ${city.name} (${city.cityId})`
+            `[HTC-Accu] Updating forecast for city: ${city.name} (${city.cityId})`
           );
 
           // 调用天气API获取最新数据
           const weatherData = await weatherApi.getWeather(city.cityId);
 
           // 转换为 HTC 格式
-          const { htcDataTransform } =
-            await import('@/services/htc/data-transform.js');
-          const htcData: HtcWeatherData = {
+          const { htcAccuDataTransform } =
+            await import('@/services/htc/htc-accu-data-transform.js');
+          const htcData: HTCAccuWeatherData = {
             code: '200',
             location: weatherData.city ? [weatherData.city] : undefined,
             now: weatherData.now,
             daily: weatherData.forecast?.daily || [],
           };
-          const xmlData = htcDataTransform.generateForecastXml(
+          const xmlData = htcAccuDataTransform.generateForecastXml(
             htcData,
             city.name
           );
 
           // 更新缓存
           const cacheDuration =
-            await htcCache.getCacheDuration('forecast-data_v3');
-          await htcCache.createOrUpdateWeatherData(
+            await htcAccuCache.getCacheDuration('forecast-data_v3');
+          await htcAccuCache.createOrUpdateWeatherData(
             city.cityId,
             'forecast-data_v3',
             xmlData,
@@ -241,18 +255,18 @@ class CronService {
           );
 
           console.log(
-            `[HTC] Successfully updated forecast for city: ${city.name}`
+            `[HTC-Accu] Successfully updated forecast for city: ${city.name}`
           );
         } catch (error) {
           console.error(
-            `[HTC] Error updating forecast for city ${city.name}:`,
+            `[HTC-Accu] Error updating forecast for city ${city.name}:`,
             error
           );
           // 继续处理下一个城市，不中断整个任务
         }
       }
     } catch (error) {
-      console.error('[HTC] Error in updateHtcForecasts:', error);
+      console.error('[HTC-Accu] Error in updateHtcForecasts:', error);
     }
   }
 
@@ -269,9 +283,12 @@ class CronService {
   // 获取HTC有预报缓存的城市列表
   private async getHtcCitiesWithForecastCache(): Promise<City[]> {
     try {
-      return await htcCache.getCitiesWithForecastCache();
+      return await htcAccuCache.getCitiesWithForecastCache();
     } catch (error) {
-      console.error('[HTC] Error getting cities with forecast cache:', error);
+      console.error(
+        '[HTC-Accu] Error getting cities with forecast cache:',
+        error
+      );
       return [];
     }
   }

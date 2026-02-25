@@ -1,0 +1,28 @@
+/**
+ * HTC天气服务 - 类型定义（兼容导出）
+ * 建议使用 htc-accu-types.ts 或 htc-huafeng-data-transform.ts
+ */
+
+// 导出 AccuWeather 国际版类型（保持向后兼容）
+export {
+  // 请求类型
+  type HTCAccuForecastRequest as HtcForecastRequest,
+  type HTCAccuLatLonSearchRequest as HtcLatLonSearchRequest,
+  type HTCAccuCityFindRequest as HtcCityFindRequest,
+  type HTCAccuWeatherDataRequest as HtcWeatherDataRequest,
+  // 响应类型
+  type HTCAccuForecastResponse as HtcForecastResponse,
+  type HTCAccuCurrentWeather as HtcCurrentWeather,
+  type HTCAccuForecastDay as HtcForecastDay,
+  type HTCAccuCitySearchResponse as HtcCitySearchResponse,
+  type HTCAccuCityInfo as HtcCityInfo,
+  type HTCAccuLocationResponse as HtcLocationResponse,
+  type HTCAccuErrorResponse as HtcErrorResponse,
+  // 工具函数和常量
+  getAccuWeatherCode,
+  QWEATHER_TO_ACCUWEATHER_MAP,
+  HTC_ACCU_API_KEY as HTC_API_KEY,
+  HTC_ACCU_DEFAULT_TEMP_UNIT as DEFAULT_TEMP_UNIT,
+  HTC_ACCU_FORECAST_DAYS as FORECAST_DAYS,
+  HTC_ACCU_XML_HEADER as XML_HEADER,
+} from './htc-accu-types.js';

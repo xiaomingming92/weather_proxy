@@ -1,6 +1,7 @@
 // 天气代码映射 - 增强版，确保与WeatherWidget完全匹配
 import { utcToLocalTime } from '@/utils/time-utils.js';
-import { DataType, AppType, WeatherData } from '@/types/index.js';
+import { DataType, AppType } from '@/types/index.js';
+import type { ZteWeatherData } from '@/types/zte.js';
 
 // 风向转换映射：中文风向 -> 数字代码
 // 基于 DecodeData.smali 逆向代码：
@@ -88,7 +89,7 @@ const weatherCodeMap: Record<string, string> = {
 
 class DataTransform {
   toWidgetXml(
-    weatherData: WeatherData,
+    weatherData: ZteWeatherData,
     dataType: string,
     appType: AppType = AppType.UNKNOWN
   ): string {
@@ -118,7 +119,7 @@ class DataTransform {
 
   // WeatherTV XML 生成
   private generateWeatherTVXml(
-    weatherData: WeatherData,
+    weatherData: ZteWeatherData,
     dataType: string
   ): string {
     switch (dataType) {
@@ -137,7 +138,7 @@ class DataTransform {
 
   // WeatherWidget XML 生成 - 使用 <CityMeteor> 格式
   private generateWeatherWidgetXml(
-    weatherData: WeatherData,
+    weatherData: ZteWeatherData,
     dataType: string
   ): string {
     switch (dataType) {
@@ -151,7 +152,7 @@ class DataTransform {
   }
 
   // WeatherTV 主天气数据 XML（dataType=zte）
-  private generateWeatherTVMainXml(weatherData: WeatherData): string {
+  private generateWeatherTVMainXml(weatherData: ZteWeatherData): string {
     console.log('Generating WeatherTV main XML with data:', weatherData);
 
     // 确保所有字段都有默认值
@@ -312,7 +313,7 @@ class DataTransform {
   }
 
   // WeatherTV Widget 实况 XML（dataType=ztewidgetsk）
-  private generateWeatherTVWidgetSKXml(weatherData: WeatherData): string {
+  private generateWeatherTVWidgetSKXml(weatherData: ZteWeatherData): string {
     const nowData = weatherData.now || {
       temp: '0',
       icon: '100',
@@ -331,7 +332,7 @@ class DataTransform {
   }
 
   // WeatherTV Widget 预报 XML（dataType=ztewidgetcf）
-  private generateWeatherTVWidgetCFXml(weatherData: WeatherData): string {
+  private generateWeatherTVWidgetCFXml(weatherData: ZteWeatherData): string {
     const forecast = weatherData.forecast || {
       daily: [],
       updateTime: new Date().toISOString(),
@@ -363,7 +364,7 @@ class DataTransform {
   }
 
   // 城市列表 XML（flag=allcity）
-  private generateCityListXml(weatherData: WeatherData): string {
+  private generateCityListXml(weatherData: ZteWeatherData): string {
     // 这里需要实际的城市列表数据
     // 暂时返回空结构
     return `${this.generateXmlHeader()}
@@ -373,7 +374,7 @@ class DataTransform {
   }
 
   // WeatherWidget 当前天气 XML - 兼容原WeatherWidget解析器
-  private generateWeatherWidgetCurrentXml(weatherData: WeatherData): string {
+  private generateWeatherWidgetCurrentXml(weatherData: ZteWeatherData): string {
     console.log('Generating WeatherWidget current XML with data:', weatherData);
 
     const nowData = weatherData.now || {
@@ -403,7 +404,9 @@ class DataTransform {
   }
 
   // WeatherWidget 预报 XML - 兼容原WeatherWidget解析器
-  private generateWeatherWidgetForecastXml(weatherData: WeatherData): string {
+  private generateWeatherWidgetForecastXml(
+    weatherData: ZteWeatherData
+  ): string {
     console.log(
       'Generating WeatherWidget forecast XML with data:',
       weatherData
@@ -445,7 +448,7 @@ class DataTransform {
 
   // 原有的生成方法（向后兼容）
   private generateCurrentWeatherXml(
-    weatherData: WeatherData,
+    weatherData: ZteWeatherData,
     appType: AppType
   ): string {
     console.log(
@@ -480,7 +483,7 @@ class DataTransform {
   }
 
   private generateForecastXml(
-    weatherData: WeatherData,
+    weatherData: ZteWeatherData,
     appType: AppType
   ): string {
     console.log(
@@ -535,7 +538,10 @@ class DataTransform {
   }
 
   // 原有的 ZTE XML 生成（向后兼容）
-  private generateZteXml(weatherData: WeatherData, appType: AppType): string {
+  private generateZteXml(
+    weatherData: ZteWeatherData,
+    appType: AppType
+  ): string {
     // 使用新的 WeatherTV 主数据生成方法
     if (appType === AppType.WEATHER_TV) {
       return this.generateWeatherTVMainXml(weatherData);
@@ -563,7 +569,7 @@ class DataTransform {
   }
 
   // 提取城市信息
-  private extractCityInfo(weatherData: WeatherData): {
+  private extractCityInfo(weatherData: ZteWeatherData): {
     id: string;
     name: string;
     sunrise?: string;

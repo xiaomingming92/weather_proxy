@@ -66,7 +66,7 @@ export interface CacheStrategy {
 // ============================================
 
 import zteCache from './zte-cache.js';
-import htcCache from './htc-cache.js';
+import htcAccuCache from './htc-accu-cache.js';
 
 export type DeviceType = 'zte' | 'htc';
 
@@ -77,7 +77,7 @@ export class CacheContext {
     if (deviceType === 'zte') {
       this.strategy = zteCache as unknown as CacheStrategy;
     } else if (deviceType === 'htc') {
-      this.strategy = htcCache as unknown as CacheStrategy;
+      this.strategy = htcAccuCache as unknown as CacheStrategy;
     } else {
       throw new Error(`Unknown device type: ${deviceType}`);
     }

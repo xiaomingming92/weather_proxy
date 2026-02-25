@@ -11,7 +11,8 @@ import weatherApi from '@/services/weather-api.js';
 import dataTransform from '@/services/zte/data-transform.js';
 import cache from '@/services/cache.js';
 import { zteCache } from '@/services/cache/index.js';
-import { AppType, WeatherData } from '@/types/index.js';
+import { DataType, AppType } from '@/types/index.js';
+import type { ZteWeatherData } from '@/types/zte.js';
 
 const router = express.Router();
 
@@ -116,9 +117,21 @@ async function handleWeatherRequest(
 
   // 调用和风天气API（带重试机制，失败时返回默认值）
   console.log('Calling weather API for', locationParam);
-  let weatherData: WeatherData;
+  let weatherData: ZteWeatherData;
   try {
-    weatherData = await weatherApi.getWeather(locationParam);
+    const apiData = await weatherApi.getWeather(locationParam);
+    // 确保数据符合 ZteWeatherData 格式
+    weatherData = {
+      now: apiData.now,
+      forecast: apiData.forecast || {
+        daily: [],
+        updateTime: new Date().toISOString(),
+      },
+      hourly: apiData.hourly,
+      indices: apiData.indices,
+      city: apiData.city || { id: actualCityId, name: locationParam },
+      updateTime: apiData.updateTime,
+    };
     console.log('Weather API response received successfully');
   } catch (error) {
     console.error('Weather API failed after retries:', error);
