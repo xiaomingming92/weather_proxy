@@ -423,6 +423,7 @@ import huafengCityCodes from './huafeng-city-codes-from-source.json' with { type
 /**
  * 从JSON文件加载城市代码映射
  * 将分层结构扁平化为单一映射表（代码 -> 城市名）
+ * 格式：{ "城市名": "代码" } -> { "代码": "城市名" }
  */
 function loadCityCodeMap(): Record<string, string> {
   const map: Record<string, string> = {};

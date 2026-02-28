@@ -147,6 +147,12 @@ export function validateWeatherDataRequest(
  * @returns 城市名
  */
 export function parseLocCode(loccode: string): string {
+  // 处理 Current City 特殊情况（定位查询）
+  if (loccode === 'Current City' || loccode === 'Current+City') {
+    console.log('[Validator] Current City detected, defaulting to Yangzhou');
+    return 'Yangzhou';
+  }
+
   // 按|分割
   const parts = loccode.split('|');
 

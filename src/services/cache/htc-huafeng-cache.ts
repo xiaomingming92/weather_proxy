@@ -167,9 +167,22 @@ class HTCHuaFengCacheService {
   // 缓存策略配置
   // ============================================
 
-  async getCacheDuration(): Promise<number> {
-    // HTC华风天气默认缓存30分钟
-    return 30;
+  async getCacheDuration(dataType: string = 'default'): Promise<number> {
+    try {
+      // @ts-ignore - Prisma generates camelCase accessor
+      const policy = await prisma.hTCHuaFengCachePolicy.findUnique({
+        where: { dataType },
+      });
+
+      if (policy) {
+        return policy.duration;
+      }
+    } catch (error) {
+      console.error('[HTC-HuaFeng] Error getting cache duration:', error);
+    }
+
+    // 默认缓存10分钟
+    return 10;
   }
 
   // ============================================

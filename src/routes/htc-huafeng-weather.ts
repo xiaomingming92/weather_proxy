@@ -17,6 +17,52 @@ import { htcHuaFengCache } from '@/services/cache/index.js';
 
 const router = express.Router();
 
+// 强制刷新追踪器：记录每个城市的点击时间
+const refreshTracker: Map<string, number[]> = new Map();
+const REFRESH_WINDOW_MS = 10000; // 10秒窗口
+const REFRESH_MIN_THRESHOLD = 3; // 最少3次点击触发强制刷新
+const REFRESH_MAX_THRESHOLD = 5; // 最多5次点击，超过则视为攻击，继续使用缓存
+
+/**
+ * 检查是否需要强制刷新
+ * @param cityCode 城市代码
+ * @returns 是否需要强制刷新
+ */
+function shouldForceRefresh(cityCode: string): boolean {
+  const now = Date.now();
+  const clicks = refreshTracker.get(cityCode) || [];
+
+  // 清理过期的点击记录
+  const validClicks = clicks.filter(time => now - time < REFRESH_WINDOW_MS);
+
+  // 添加当前点击
+  validClicks.push(now);
+  refreshTracker.set(cityCode, validClicks);
+
+  // 超过最大阈值，视为攻击，继续使用缓存
+  if (validClicks.length > REFRESH_MAX_THRESHOLD) {
+    console.log(
+      `[HTC-HuaFeng] Too many requests for ${cityCode} (${validClicks.length} clicks), using cache`
+    );
+    return false;
+  }
+
+  // 检查是否在有效范围内（3-5次）
+  if (
+    validClicks.length >= REFRESH_MIN_THRESHOLD &&
+    validClicks.length <= REFRESH_MAX_THRESHOLD
+  ) {
+    console.log(
+      `[HTC-HuaFeng] Force refresh triggered for ${cityCode} (${validClicks.length} clicks in ${REFRESH_WINDOW_MS}ms)`
+    );
+    // 清空记录，防止连续触发
+    refreshTracker.delete(cityCode);
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * 华风天气数据端点
  * GET /getweatheru.asmx/getData?dataType=htc&code=ED926B&sname=01011712
@@ -43,14 +89,21 @@ router.get('/getData', async (req, res) => {
       return;
     }
 
+    // 检查是否需要强制刷新（10秒内点击3次）
+    const forceRefresh = shouldForceRefresh(sname);
+
     // 检查缓存
     const cached = await htcHuaFengCache.getWeatherData(sname);
-    if (cached) {
+    if (cached && !forceRefresh) {
       console.log('[HTC-HuaFeng] Cache hit for city:', sname);
       res.set('Content-Type', 'text/xml; charset=utf-8');
       res.set('X-Cache', 'HIT');
       res.send(cached.xmlData);
       return;
+    }
+
+    if (forceRefresh) {
+      console.log('[HTC-HuaFeng] Force refresh for city:', sname);
     }
 
     // 城市代码映射（华风代码 -> 城市名称）
@@ -84,8 +137,9 @@ router.get('/getData', async (req, res) => {
     const xml = htcHuaFengDataTransform.generateHuaFengXml(weatherData, sname);
     console.log('[HTC-HuaFeng] Generated XML length:', xml.length);
 
-    // 存入缓存
-    await htcHuaFengCache.createOrUpdateWeatherData(sname, xml, 30);
+    // 获取缓存时长并存入缓存
+    const cacheDuration = await htcHuaFengCache.getCacheDuration('default');
+    await htcHuaFengCache.createOrUpdateWeatherData(sname, xml, cacheDuration);
 
     res.set('Content-Type', 'text/xml; charset=utf-8');
     res.set('X-Cache', 'MISS');
