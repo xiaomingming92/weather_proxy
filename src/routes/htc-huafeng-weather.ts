@@ -17,32 +17,57 @@ import { htcHuaFengCache } from '@/services/cache/index.js';
 
 const router = express.Router();
 
-// 强制刷新追踪器：记录每个城市的点击时间
+// 强制刷新追踪器：记录每个设备（IP+城市）的点击时间
+// key格式: "ip:cityCode"
 const refreshTracker: Map<string, number[]> = new Map();
 const REFRESH_WINDOW_MS = 10000; // 10秒窗口
 const REFRESH_MIN_THRESHOLD = 3; // 最少3次点击触发强制刷新
 const REFRESH_MAX_THRESHOLD = 5; // 最多5次点击，超过则视为攻击，继续使用缓存
 
 /**
+ * 获取客户端IP地址
+ * @param req Express请求对象
+ * @returns IP地址
+ */
+function getClientIp(req: express.Request): string {
+  // 优先获取X-Forwarded-For（经过代理时）
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return (typeof forwarded === 'string' ? forwarded : forwarded[0])
+      .split(',')[0]
+      .trim();
+  }
+  // 其次X-Real-IP
+  const realIp = req.headers['x-real-ip'];
+  if (realIp) {
+    return typeof realIp === 'string' ? realIp : realIp[0];
+  }
+  // 最后使用remoteAddress
+  return req.socket.remoteAddress || 'unknown';
+}
+
+/**
  * 检查是否需要强制刷新
+ * @param deviceId 设备标识（IP地址）
  * @param cityCode 城市代码
  * @returns 是否需要强制刷新
  */
-function shouldForceRefresh(cityCode: string): boolean {
+function shouldForceRefresh(deviceId: string, cityCode: string): boolean {
   const now = Date.now();
-  const clicks = refreshTracker.get(cityCode) || [];
+  const key = `${deviceId}:${cityCode}`;
+  const clicks = refreshTracker.get(key) || [];
 
   // 清理过期的点击记录
   const validClicks = clicks.filter(time => now - time < REFRESH_WINDOW_MS);
 
   // 添加当前点击
   validClicks.push(now);
-  refreshTracker.set(cityCode, validClicks);
+  refreshTracker.set(key, validClicks);
 
   // 超过最大阈值，视为攻击，继续使用缓存
   if (validClicks.length > REFRESH_MAX_THRESHOLD) {
     console.log(
-      `[HTC-HuaFeng] Too many requests for ${cityCode} (${validClicks.length} clicks), using cache`
+      `[HTC-HuaFeng] Too many requests from ${deviceId} for ${cityCode} (${validClicks.length} clicks), using cache`
     );
     return false;
   }
@@ -53,10 +78,10 @@ function shouldForceRefresh(cityCode: string): boolean {
     validClicks.length <= REFRESH_MAX_THRESHOLD
   ) {
     console.log(
-      `[HTC-HuaFeng] Force refresh triggered for ${cityCode} (${validClicks.length} clicks in ${REFRESH_WINDOW_MS}ms)`
+      `[HTC-HuaFeng] Force refresh triggered for ${deviceId} - ${cityCode} (${validClicks.length} clicks in ${REFRESH_WINDOW_MS}ms)`
     );
     // 清空记录，防止连续触发
-    refreshTracker.delete(cityCode);
+    refreshTracker.delete(key);
     return true;
   }
 
@@ -89,8 +114,11 @@ router.get('/getData', async (req, res) => {
       return;
     }
 
+    // 获取设备IP地址
+    const clientIp = getClientIp(req);
+
     // 检查是否需要强制刷新（10秒内点击3次）
-    const forceRefresh = shouldForceRefresh(sname);
+    const forceRefresh = shouldForceRefresh(clientIp, sname);
 
     // 检查缓存
     const cached = await htcHuaFengCache.getWeatherData(sname);
@@ -104,6 +132,8 @@ router.get('/getData', async (req, res) => {
 
     if (forceRefresh) {
       console.log('[HTC-HuaFeng] Force refresh for city:', sname);
+      // 强制刷新时删除缓存
+      await htcHuaFengCache.clearWeatherData(sname);
     }
 
     // 城市代码映射（华风代码 -> 城市名称）

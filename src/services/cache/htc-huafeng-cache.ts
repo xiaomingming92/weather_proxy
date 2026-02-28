@@ -207,22 +207,39 @@ class HTCHuaFengCacheService {
   }
 
   async clearWeatherData(
-    beforeTimestamp?: bigint
+    cityCodeOrTimestamp?: string | bigint
   ): Promise<{ deletedCount: number }> {
     try {
       let result;
-      if (beforeTimestamp) {
+      if (typeof cityCodeOrTimestamp === 'string') {
+        // 按城市代码删除
         // @ts-ignore - Prisma generates camelCase accessor
         result = await prisma.hTCHuaFengWeatherCache.deleteMany({
           where: {
-            createdAt: { lte: beforeTimestamp },
+            cityCode: cityCodeOrTimestamp,
           },
         });
+        console.log(
+          `[HTC-HuaFeng] Deleted cache for city ${cityCodeOrTimestamp}`
+        );
+      } else if (cityCodeOrTimestamp) {
+        // 按时间戳删除
+        // @ts-ignore - Prisma generates camelCase accessor
+        result = await prisma.hTCHuaFengWeatherCache.deleteMany({
+          where: {
+            createdAt: { lte: cityCodeOrTimestamp },
+          },
+        });
+        console.log(
+          `[HTC-HuaFeng] Deleted ${result.count} weather data records`
+        );
       } else {
         // @ts-ignore - Prisma generates camelCase accessor
         result = await prisma.hTCHuaFengWeatherCache.deleteMany({});
+        console.log(
+          `[HTC-HuaFeng] Deleted ${result.count} weather data records`
+        );
       }
-      console.log(`[HTC-HuaFeng] Deleted ${result.count} weather data records`);
       return { deletedCount: result.count };
     } catch (error) {
       console.error('[HTC-HuaFeng] Error clearing weather data:', error);
