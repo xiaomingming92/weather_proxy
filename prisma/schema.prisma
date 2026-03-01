@@ -161,6 +161,36 @@ model HtcHuaFengCachePolicy {
 }
 
 // ============================================
+// HTC G13 新天气 App 缓存表
+// ============================================
+model HtcG13WeatherCache {
+  id            Int      @id @default(autoincrement())
+  cityId        String   @unique  // 和风天气城市ID
+  jsonData      String   @db.Text  // JSON格式天气数据
+  timestamp     BigInt
+  expiresAt     BigInt
+  cacheDuration Int      @default(30)
+  createdAt     BigInt
+  updatedAt     BigInt
+
+  @@index([expiresAt])
+}
+
+// ============================================
+// HTC G13 新天气 App 城市表
+// ============================================
+model HtcG13City {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique  // 城市名称
+  cityId      String   @unique  // 和风天气城市ID
+  latitude    String?
+  longitude   String?
+  adm1        String?  // 所属省份
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
 // 旧表（保留用于数据迁移，后续删除）
 // ============================================
 model City {

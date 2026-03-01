@@ -204,3 +204,5 @@ export * from './zte.js';
 // HTC类型已从 htc.ts 拆分为 htc-accu.ts 和 htc-huafeng.ts
 export * from './htc-accu.js';
 export * from './htc-huafeng.js';
+// HTC G13 新天气 App 类型
+export * from './htc-g13.js';

@@ -3,6 +3,7 @@ import { config } from './config/index.js';
 import weatherRouter from './routes/weather.js';
 import htcAccuWeatherRouter from './routes/htc-accu-weather.js';
 import htcHuaFengWeatherRouter from './routes/htc-huafeng-weather.js';
+import htcG13WeatherRouter from './routes/htc-g13-weather.js';
 import configRouter from './routes/config.js';
 import cronService from './services/cron-service.js';
 
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 app.use('/api/weather', weatherRouter);
 app.use('/widget', htcAccuWeatherRouter);
 app.use('/getweatheru.asmx', htcHuaFengWeatherRouter);
+app.use('/api/v1/htc-g13', htcG13WeatherRouter);
 app.use('/api/config', configRouter);
 
 // 错误处理中间件

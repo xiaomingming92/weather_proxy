@@ -284,6 +284,46 @@ class WeatherApi {
     }
   }
 
+  /**
+   * 根据GPS坐标获取城市信息（逆地理编码）
+   * @param lat 纬度
+   * @param lon 经度
+   */
+  async getCityByLocation(lat: string, lon: string) {
+    const token = await this.generateJWT();
+    // 使用和风天气城市搜索API，通过经纬度查找最近城市
+    const url = `https://${config.qweather.apiHost}/geo/v2/city/lookup`;
+    console.log('Request URL:', url);
+    console.log('Request params:', { location: `${lon},${lat}`, lang: 'zh' });
+
+    try {
+      const response = await axios.get(url, {
+        params: {
+          location: `${lon},${lat}`,
+          lang: 'zh',
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Accept-Encoding': 'gzip, deflate',
+        },
+        decompress: true,
+        validateStatus: function (status) {
+          console.log('Response status:', status);
+          return true;
+        },
+      });
+
+      console.log('Location lookup response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Location lookup error:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error:', error.response?.data);
+      }
+      throw error;
+    }
+  }
+
   private async getNowWeather(cityId: string) {
     const token = await this.generateJWT();
     const url = `${this.baseUrl}/weather/now`;
