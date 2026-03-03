@@ -129,11 +129,11 @@ export const HUAFENG_TO_ACCUWEATHER_MAP: Record<HTCHuaFengWeatherCode, number> =
   {
     0: 1, // 晴 -> Sunny
     1: 6, // 多云 -> Mostly Cloudy
-    2: 8, // 阴 -> Cloudy
+    2: 3, // 阴 -> Cloudy (修正：原映射为8雾图标错误，3为阴天图标)
     3: 18, // 雨 -> Rain
     4: 15, // 雷阵雨 -> Thunderstorm
-    5: 51, // 雾 -> Fog
-    6: 29, // 雪 -> Snow
+    5: 8, // 雾 -> Fog (修正：原映射为51太阳图标错误，8为雾图标)
+    6: 22, // 雪 -> Snow (修正：原映射为29雾图标错误，22为雪图标)
     7: 14, // 雨夹雪 -> Sleet
     8: 13, // 小雨 -> Light Rain
     9: 18, // 中雨 -> Rain
@@ -176,11 +176,11 @@ export const HUAFENG_NIGHT_TO_ACCUWEATHER_MAP: Record<
 > = {
   0: 33, // 晴(夜间) -> Clear
   1: 38, // 多云(夜间) -> Mostly Cloudy
-  2: 8, // 阴 -> Cloudy
+  2: 3, // 阴 -> Cloudy (修正：原映射为8雾图标错误，3为阴天图标)
   3: 18, // 雨 -> Rain
   4: 15, // 雷阵雨 -> Thunderstorm
-  5: 51, // 雾 -> Fog
-  6: 29, // 雪 -> Snow
+  5: 8, // 雾 -> Fog (修正：原映射为51太阳图标错误，8为雾图标)
+  6: 22, // 雪 -> Snow (修正：原映射为29雾图标错误，22为雪图标)
   7: 14, // 雨夹雪 -> Sleet
   8: 13, // 小雨 -> Light Rain
   9: 18, // 中雨 -> Rain
@@ -210,7 +210,7 @@ export const HUAFENG_NIGHT_TO_ACCUWEATHER_MAP: Record<
   33: 54, // 特强浓雾 -> Smoke (修正：原映射为Heavy Snow错误，54为雾图标)
   34: 29, // 霾 -> Fog (修正：原映射为Smoke错误，29为雾/霾图标)
   35: 29, // 中度霾 -> Fog (修正：原映射为Flurries错误，29为雾/霾图标)
-  36: 11, // 重度霾 -> Hail
+  36: 29, // 重度霾 -> Fog (修正：原映射为Hail错误，29为雾/霾图标)
 };
 
 /**
