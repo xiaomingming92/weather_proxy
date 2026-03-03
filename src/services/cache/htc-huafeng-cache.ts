@@ -169,8 +169,7 @@ class HTCHuaFengCacheService {
 
   async getCacheDuration(dataType: string = 'default'): Promise<number> {
     try {
-      // @ts-ignore - Prisma generates camelCase accessor
-      const policy = await prisma.hTCHuaFengCachePolicy.findUnique({
+      const policy = await prisma.htcHuaFengCachePolicy.findUnique({
         where: { dataType },
       });
 
