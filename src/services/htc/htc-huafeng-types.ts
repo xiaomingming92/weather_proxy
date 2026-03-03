@@ -195,21 +195,21 @@ export const HUAFENG_NIGHT_TO_ACCUWEATHER_MAP: Record<
   18: 11, // 冰雹 -> Hail
   19: 26, // 浮尘 -> Dust
   20: 52, // 扬沙 -> Haze
-  21: 13, // 强沙尘暴 -> Light Rain
-  22: 15, // 霾 -> Thunderstorm
-  23: 15, // 雾凇 -> Thunderstorm
-  24: 15, // 雨凇 -> Thunderstorm
-  25: 15, // 沙尘暴 -> Thunderstorm
-  26: 15, // 强沙尘暴 -> Thunderstorm
-  27: 19, // 龙卷风 -> Flurries
+  21: 26, // 强沙尘暴 -> Dust (修正：原映射为Light Rain错误)
+  22: 29, // 霾 -> Fog (修正：原映射为Thunderstorm错误，29为雾/霾图标)
+  23: 29, // 雾凇 -> Fog (修正：原映射为Thunderstorm错误，29为雾图标)
+  24: 29, // 雨凇 -> Fog (修正：原映射为Thunderstorm错误，29为雾图标)
+  25: 25, // 沙尘暴 -> Dust Storm (修正：原映射为Thunderstorm错误，25为沙尘暴图标)
+  26: 26, // 强沙尘暴 -> Heavy Dust Storm (修正：原映射为Thunderstorm错误，26为强沙尘暴图标)
+  27: 26, // 龙卷风 -> Dust (修正：原映射为Flurries错误)
   28: 22, // 飑线 -> Heavy Rain
-  29: 22, // 轻雾 -> Heavy Rain
-  30: 53, // 大雾 -> Dense Fog
-  31: 52, // 浓雾 -> Haze
-  32: 52, // 强浓雾 -> Haze
-  33: 32, // 特强浓雾 -> Heavy Snow
-  34: 54, // 霾 -> Smoke
-  35: 19, // 中度霾 -> Flurries
+  29: 29, // 轻雾 -> Fog (修正：原映射为Heavy Rain错误，29为雾图标)
+  30: 29, // 大雾 -> Fog (修正：原映射为53扬沙图标错误，29为雾图标)
+  31: 29, // 浓雾 -> Fog (修正：原映射为52扬沙图标错误，29为雾图标)
+  32: 54, // 强浓雾 -> Smoke (修正：原映射为52扬沙图标错误，54为雾图标)
+  33: 54, // 特强浓雾 -> Smoke (修正：原映射为Heavy Snow错误，54为雾图标)
+  34: 29, // 霾 -> Fog (修正：原映射为Smoke错误，29为雾/霾图标)
+  35: 29, // 中度霾 -> Fog (修正：原映射为Flurries错误，29为雾/霾图标)
   36: 11, // 重度霾 -> Hail
 };
 
