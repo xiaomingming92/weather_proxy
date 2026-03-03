@@ -11,8 +11,8 @@ import {
   getWeekName,
   isNightTime,
   HUAFENG_CITY_CODE_MAP,
+  getHuaFengCode,
 } from './htc-huafeng-types.js';
-import { getAccuWeatherCode } from './htc-accu-types.js';
 import { WeatherData, DailyForecast } from '@/types/index.js';
 
 /**
@@ -47,8 +47,8 @@ export class HTCHuaFengDataTransform {
     const cityName =
       HUAFENG_CITY_CODE_MAP[cityCode] || city?.name || '未知城市';
 
-    // 获取当前天气的Accu代码（直接使用QWeather -> Accu映射）
-    const currentAccuCode = getAccuWeatherCode(now?.icon || '100');
+    // 获取当前天气的华风代码（QWeather -> 华风代码）
+    const currentHuaFengCode = getHuaFengCode(now?.icon || '100');
 
     // 构建XML
     let xml = XML_HEADER;
@@ -70,12 +70,12 @@ export class HTCHuaFengDataTransform {
     daily
       .slice(0, FORECAST_DAYS)
       .forEach((day: DailyForecast, index: number) => {
-        const accuCode = getAccuWeatherCode(day.iconDay);
+        const huaFengCode = getHuaFengCode(day.iconDay);
         const weekCode = this.getWeekCode(day.fxDate);
         const timeRange = this.getTimeRange(day.fxDate);
 
         xml += `<Period TimeStart="${timeRange.start}" TimeEnd="${timeRange.end}" `;
-        xml += `Weather="${accuCode}" `;
+        xml += `Weather="${huaFengCode}" `;
         xml += `Tmax="${day.tempMax}" `;
         xml += `Tmin="${day.tempMin}" `;
         xml += `Week="${weekCode}" `;
@@ -87,8 +87,8 @@ export class HTCHuaFengDataTransform {
 
     // SK元素（Shi Kuang/实况数据）
     xml += `<SK>`;
-    // 直接使用Accu代码，确保手机端显示正确的图标
-    xml += `<Info Weather="${currentAccuCode}" `;
+    // 使用华风代码，原版天气应用会自动转换为Accu代码
+    xml += `<Info Weather="${currentHuaFengCode}" `;
     xml += `Temperature="${now?.temp || '0'}" `;
     xml += `WindDir="${this.escapeXml(now?.windDir || '')}" `;
     xml += `WindPower="${now?.windScale || '0'}" `;

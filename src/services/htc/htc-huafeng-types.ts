@@ -127,17 +127,19 @@ export interface HTCHuaFengErrorResponse {
  */
 export const HUAFENG_TO_ACCUWEATHER_MAP: Record<HTCHuaFengWeatherCode, number> =
   {
+    // 官方映射表来自 ChinaWeatherData.java
+    // 索引: 0-35 对应华风代码
     0: 1, // 晴 -> Sunny
     1: 6, // 多云 -> Mostly Cloudy
-    2: 3, // 阴 -> Cloudy (修正：原映射为8雾图标错误，3为阴天图标)
+    2: 8, // 阴 -> Cloudy
     3: 18, // 雨 -> Rain
     4: 15, // 雷阵雨 -> Thunderstorm
-    5: 8, // 雾 -> Fog (修正：原映射为51太阳图标错误，8为雾图标)
-    6: 22, // 雪 -> Snow (修正：原映射为29雾图标错误，22为雪图标)
+    5: 51, // 雾 -> Sunny (官方映射，需要验证)
+    6: 29, // 雪 -> Fog (官方映射，需要验证)
     7: 14, // 雨夹雪 -> Sleet
     8: 13, // 小雨 -> Light Rain
     9: 18, // 中雨 -> Rain
-    10: 15, // 大雨 -> Heavy Thunderstorm
+    10: 15, // 大雨 -> Thunderstorm
     11: 22, // 暴雨 -> Heavy Rain
     12: 22, // 大暴雨 -> Heavy Rain
     13: 23, // 特大暴雨 -> Tropical Storm
@@ -148,22 +150,21 @@ export const HUAFENG_TO_ACCUWEATHER_MAP: Record<HTCHuaFengWeatherCode, number> =
     18: 11, // 冰雹 -> Hail
     19: 26, // 浮尘 -> Dust
     20: 52, // 扬沙 -> Haze
-    21: 26, // 强沙尘暴 -> Dust (修正：原映射为Light Rain错误)
-    22: 29, // 霾 -> Fog (修正：原映射为Thunderstorm错误，29为雾/霾图标)
-    23: 29, // 雾凇 -> Fog (修正：原映射为Thunderstorm错误，29为雾图标)
-    24: 29, // 雨凇 -> Fog (修正：原映射为Thunderstorm错误，29为雾图标)
-    25: 25, // 沙尘暴 -> Dust Storm (修正：原映射为Thunderstorm错误，25为沙尘暴图标)
-    26: 26, // 强沙尘暴 -> Heavy Dust Storm (修正：原映射为Thunderstorm错误，26为强沙尘暴图标)
-    27: 26, // 龙卷风 -> Dust (修正：原映射为Flurries错误)
-    28: 22, // 飑线 -> Heavy Rain
-    29: 29, // 轻雾 -> Fog (修正：原映射为Heavy Rain错误，29为雾图标)
-    30: 29, // 大雾 -> Fog (修正：原映射为53扬沙图标错误，29为雾图标)
-    31: 29, // 浓雾 -> Fog (修正：原映射为52扬沙图标错误，29为雾图标)
-    32: 54, // 强浓雾 -> Smoke (修正：原映射为52扬沙图标错误，54为雾图标)
-    33: 54, // 特强浓雾 -> Smoke (修正：原映射为Heavy Snow错误，54为雾图标)
-    34: 29, // 霾 -> Fog (修正：原映射为Smoke错误，29为雾/霾图标)
-    35: 29, // 中度霾 -> Fog (修正：原映射为Flurries错误，29为雾/霾图标)
-    36: 29, // 重度霾 -> Fog (修正：原映射为Hail错误，29为雾/霾图标)
+    21: 13, // 强沙尘暴 -> Light Rain (官方映射)
+    22: 15, // 霾 -> Thunderstorm (官方映射)
+    23: 15, // 雾凇 -> Thunderstorm (官方映射)
+    24: 15, // 雨凇 -> Thunderstorm (官方映射)
+    25: 15, // 沙尘暴 -> Thunderstorm (官方映射)
+    26: 19, // 强沙尘暴 -> Flurries (官方映射)
+    27: 22, // 龙卷风 -> Heavy Rain (官方映射)
+    28: 22, // 飑线 -> Heavy Rain (官方映射)
+    29: 53, // 轻雾 -> Haze (官方映射)
+    30: 52, // 大雾 -> Haze (官方映射)
+    31: 52, // 浓雾 -> Haze (官方映射)
+    32: 32, // 夜间晴 -> Clear (Night) (官方映射)
+    33: 54, // 强浓雾/特强浓雾 -> Smoke (官方映射)
+    34: 19, // -> Flurries (官方映射)
+    35: 11, // -> Hail (官方映射)
   };
 
 /**
@@ -174,17 +175,19 @@ export const HUAFENG_NIGHT_TO_ACCUWEATHER_MAP: Record<
   HTCHuaFengWeatherCode,
   number
 > = {
+  // 官方夜间映射表来自 ChinaWeatherData.java
+  // 只有 0 和 1 与白天不同，其他相同
   0: 33, // 晴(夜间) -> Clear
-  1: 38, // 多云(夜间) -> Mostly Cloudy
-  2: 3, // 阴 -> Cloudy (修正：原映射为8雾图标错误，3为阴天图标)
+  1: 38, // 多云(夜间) -> Mostly Cloudy (Night)
+  2: 8, // 阴 -> Cloudy
   3: 18, // 雨 -> Rain
   4: 15, // 雷阵雨 -> Thunderstorm
-  5: 8, // 雾 -> Fog (修正：原映射为51太阳图标错误，8为雾图标)
-  6: 22, // 雪 -> Snow (修正：原映射为29雾图标错误，22为雪图标)
+  5: 51, // 雾 -> Sunny (官方映射)
+  6: 29, // 雪 -> Fog (官方映射)
   7: 14, // 雨夹雪 -> Sleet
   8: 13, // 小雨 -> Light Rain
   9: 18, // 中雨 -> Rain
-  10: 15, // 大雨 -> Heavy Thunderstorm
+  10: 15, // 大雨 -> Thunderstorm
   11: 22, // 暴雨 -> Heavy Rain
   12: 22, // 大暴雨 -> Heavy Rain
   13: 23, // 特大暴雨 -> Tropical Storm
@@ -195,22 +198,21 @@ export const HUAFENG_NIGHT_TO_ACCUWEATHER_MAP: Record<
   18: 11, // 冰雹 -> Hail
   19: 26, // 浮尘 -> Dust
   20: 52, // 扬沙 -> Haze
-  21: 26, // 强沙尘暴 -> Dust (修正：原映射为Light Rain错误)
-  22: 29, // 霾 -> Fog (修正：原映射为Thunderstorm错误，29为雾/霾图标)
-  23: 29, // 雾凇 -> Fog (修正：原映射为Thunderstorm错误，29为雾图标)
-  24: 29, // 雨凇 -> Fog (修正：原映射为Thunderstorm错误，29为雾图标)
-  25: 25, // 沙尘暴 -> Dust Storm (修正：原映射为Thunderstorm错误，25为沙尘暴图标)
-  26: 26, // 强沙尘暴 -> Heavy Dust Storm (修正：原映射为Thunderstorm错误，26为强沙尘暴图标)
-  27: 26, // 龙卷风 -> Dust (修正：原映射为Flurries错误)
-  28: 22, // 飑线 -> Heavy Rain
-  29: 29, // 轻雾 -> Fog (修正：原映射为Heavy Rain错误，29为雾图标)
-  30: 29, // 大雾 -> Fog (修正：原映射为53扬沙图标错误，29为雾图标)
-  31: 29, // 浓雾 -> Fog (修正：原映射为52扬沙图标错误，29为雾图标)
-  32: 54, // 强浓雾 -> Smoke (修正：原映射为52扬沙图标错误，54为雾图标)
-  33: 54, // 特强浓雾 -> Smoke (修正：原映射为Heavy Snow错误，54为雾图标)
-  34: 29, // 霾 -> Fog (修正：原映射为Smoke错误，29为雾/霾图标)
-  35: 29, // 中度霾 -> Fog (修正：原映射为Flurries错误，29为雾/霾图标)
-  36: 29, // 重度霾 -> Fog (修正：原映射为Hail错误，29为雾/霾图标)
+  21: 13, // 强沙尘暴 -> Light Rain (官方映射)
+  22: 15, // 霾 -> Thunderstorm (官方映射)
+  23: 15, // 雾凇 -> Thunderstorm (官方映射)
+  24: 15, // 雨凇 -> Thunderstorm (官方映射)
+  25: 15, // 沙尘暴 -> Thunderstorm (官方映射)
+  26: 19, // 强沙尘暴 -> Flurries (官方映射)
+  27: 22, // 龙卷风 -> Heavy Rain (官方映射)
+  28: 22, // 飑线 -> Heavy Rain (官方映射)
+  29: 53, // 轻雾 -> Haze (官方映射)
+  30: 52, // 大雾 -> Haze (官方映射)
+  31: 52, // 浓雾 -> Haze (官方映射)
+  32: 32, // 夜间晴 -> Clear (Night) (官方映射)
+  33: 54, // 强浓雾/特强浓雾 -> Smoke (官方映射)
+  34: 19, // -> Flurries (官方映射)
+  35: 11, // -> Hail (官方映射)
 };
 
 /**
@@ -319,14 +321,16 @@ export const QWEATHER_TO_HUAFENG_MAP: Record<string, HTCHuaFengWeatherCode> = {
   '405': 7, // 雨雪天气
   '406': 7, // 阵雨夹雪
   '407': 15, // 阵雪
-  // 雾/霾
-  '500': 5, // 薄雾
-  '501': 30, // 雾
-  '502': 22, // 霾
-  '503': 31, // 浓雾
-  '504': 32, // 强浓雾
-  '507': 35, // 中度霾
-  '508': 36, // 重度霾
+  // 雾/霾 (基于官方华风→Accu映射调整)
+  // 华风 5 → Accu 51 (可能是雾，需要验证)
+  // 华风 29-33 → Accu 52,53,54 (雾/霾系列)
+  '500': 5, // 薄雾 -> 华风 5 (→ Accu 51，需要验证)
+  '501': 5, // 雾 -> 华风 5 (→ Accu 51，需要验证)
+  '502': 22, // 霾 -> 华风 22 (→ Accu 15，需要验证)
+  '503': 29, // 浓雾 -> 华风 29 (→ Accu 53 Haze)
+  '504': 33, // 强浓雾 -> 华风 33 (→ Accu 54 Smoke)
+  '507': 22, // 中度霾 -> 华风 22 (→ Accu 15)
+  '508': 22, // 重度霾 -> 华风 22 (→ Accu 15)
   // 沙尘
   '800': 19, // 浮尘
   '801': 20, // 扬沙
