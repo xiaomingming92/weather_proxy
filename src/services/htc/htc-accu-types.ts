@@ -203,6 +203,11 @@ export const QWEATHER_TO_ACCUWEATHER_MAP: Record<string, AccuWeatherCode> = {
   '316': '23', // 大到暴雨
   '317': '24', // 暴雨到大暴雨
   '318': '25', // 大暴雨到特大暴雨
+  // 雨（夜间）
+  '350': '12', // 阵雨（夜间）
+  '351': '13', // 强阵雨（夜间）
+  // 雨（通用）
+  '399': '12', // 雨
   // 雪
   '400': '26', // 小雪
   '401': '27', // 中雪
@@ -212,6 +217,11 @@ export const QWEATHER_TO_ACCUWEATHER_MAP: Record<string, AccuWeatherCode> = {
   '405': '31', // 雨雪天气
   '406': '32', // 阵雨夹雪
   '407': '33', // 阵雪
+  // 雪（夜间）
+  '456': '32', // 阵雨夹雪（夜间）
+  '457': '33', // 阵雪（夜间）
+  // 雪（通用）
+  '499': '26', // 雪
   // 雾/霾
   '500': '8', // 薄雾 -> Fog
   '501': '29', // 雾 -> Fog (修正：原映射为5太阳图标错误)
@@ -220,6 +230,14 @@ export const QWEATHER_TO_ACCUWEATHER_MAP: Record<string, AccuWeatherCode> = {
   '504': '54', // 强浓雾 -> Smoke (修正：原映射为5太阳图标错误)
   '507': '29', // 中度霾 -> Fog (修正：原映射为5太阳图标错误)
   '508': '29', // 重度霾 -> Fog (修正：原映射为5太阳图标错误)
+  // 雾/霾（补充）
+  '509': '29', // 浓雾 -> Dense Fog
+  '510': '54', // 强浓雾 -> Heavy Fog
+  '511': '29', // 中度霾 -> Moderate Haze
+  '512': '29', // 重度霾 -> Heavy Haze
+  '513': '29', // 严重霾 -> Severe Haze
+  '514': '29', // 大雾 -> Dense Fog
+  '515': '54', // 特强浓雾 -> Extreme Fog
   // 风
   '600': '2', // 轻风
   '601': '2', // 微风
@@ -230,6 +248,10 @@ export const QWEATHER_TO_ACCUWEATHER_MAP: Record<string, AccuWeatherCode> = {
   '802': '25', // 沙尘暴 -> Dust Storm (修正：原映射为35多云图标错误)
   '803': '26', // 强沙尘暴 -> Heavy Dust Storm (修正：原映射为35多云图标错误)
   '804': '26', // 龙卷风 -> Heavy Dust Storm (修正：原映射为35多云图标错误)
+  // 特殊
+  '900': '1', // 热 -> Sunny (Hot)
+  '901': '3', // 冷 -> Overcast (Cold)
+  '999': '1', // 未知 -> Sunny (Default)
 };
 
 /**
