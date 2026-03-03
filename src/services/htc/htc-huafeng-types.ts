@@ -128,43 +128,45 @@ export interface HTCHuaFengErrorResponse {
 export const HUAFENG_TO_ACCUWEATHER_MAP: Record<HTCHuaFengWeatherCode, number> =
   {
     // 官方映射表来自 ChinaWeatherData.java
-    // 索引: 0-35 对应华风代码
+    // 基于 AccuWeather 2011 年官方天气码 (1-54)
+    // 华风码: 白天Accu -> 含义
     0: 1, // 晴 -> Sunny
     1: 6, // 多云 -> Mostly Cloudy
-    2: 8, // 阴 -> Cloudy
-    3: 18, // 雨 -> Rain
-    4: 15, // 雷阵雨 -> Thunderstorm
-    5: 51, // 雾 -> Sunny (官方映射，需要验证)
-    6: 29, // 雪 -> Fog (官方映射，需要验证)
-    7: 14, // 雨夹雪 -> Sleet
-    8: 13, // 小雨 -> Light Rain
-    9: 18, // 中雨 -> Rain
-    10: 15, // 大雨 -> Thunderstorm
-    11: 22, // 暴雨 -> Heavy Rain
-    12: 22, // 大暴雨 -> Heavy Rain
-    13: 23, // 特大暴雨 -> Tropical Storm
-    14: 21, // 冻雨 -> Freezing Rain
-    15: 19, // 阵雪 -> Flurries
-    16: 22, // 阵性降水 -> Heavy Rain
-    17: 22, // 阵性雨夹雪 -> Heavy Rain
-    18: 11, // 冰雹 -> Hail
-    19: 26, // 浮尘 -> Dust
-    20: 52, // 扬沙 -> Haze
-    21: 13, // 强沙尘暴 -> Light Rain (官方映射)
-    22: 15, // 霾 -> Thunderstorm (官方映射)
-    23: 15, // 雾凇 -> Thunderstorm (官方映射)
-    24: 15, // 雨凇 -> Thunderstorm (官方映射)
-    25: 15, // 沙尘暴 -> Thunderstorm (官方映射)
-    26: 19, // 强沙尘暴 -> Flurries (官方映射)
-    27: 22, // 龙卷风 -> Heavy Rain (官方映射)
-    28: 22, // 飑线 -> Heavy Rain (官方映射)
-    29: 53, // 轻雾 -> Haze (官方映射)
-    30: 52, // 大雾 -> Haze (官方映射)
-    31: 52, // 浓雾 -> Haze (官方映射)
-    32: 32, // 夜间晴 -> Clear (Night) (官方映射)
-    33: 54, // 强浓雾/特强浓雾 -> Smoke (官方映射)
-    34: 19, // -> Flurries (官方映射)
-    35: 11, // -> Hail (官方映射)
+    2: 8, // 阴 -> Dreary (Overcast)
+    3: 18, // 中雨 -> Rain
+    4: 15, // 雷阵雨 -> T-Storms
+    5: 51, // 小雨 -> Light Rain
+    6: 29, // 雨夹雪 -> Rain and Snow
+    7: 14, // 阵雨 -> Partly Sunny w/ Showers
+    8: 13, // 阴有阵雨 -> Mostly Cloudy w/ Showers
+    9: 18, // 大雨 -> Rain
+    10: 15, // 雷暴 -> T-Storms
+    11: 22, // 中雪 -> Snow
+    12: 22, // 大雪 -> Snow
+    13: 23, // 阴有雪 -> Mostly Cloudy w/ Snow
+    14: 21, // 阵雪 -> Partly Sunny w/ Flurries
+    15: 19, // 小雪 -> Flurries
+    16: 22, // 暴雪 -> Snow
+    17: 22, // 强降雪 -> Snow
+    18: 11, // 雾 -> Fog
+    19: 26, // 冻雨 -> Freezing Rain
+    20: 52, // 小雪 -> Light Snow
+    21: 13, // 阴阵雨 -> Mostly Cloudy w/ Showers
+    22: 15, // 雷阵雨 -> T-Storms
+    23: 15, // 强雷阵雨 -> T-Storms
+    24: 15, // 雷雨 -> T-Storms
+    25: 15, // 暴雷 -> T-Storms
+    26: 19, // 小阵雪 -> Flurries
+    27: 22, // 中阵雪 -> Snow
+    28: 22, // 大阵雪 -> Snow
+    29: 53, // 风雪 -> Blowing Snow
+    30: 52, // 小雪 -> Light Snow
+    31: 52, // 中雪 -> Light Snow
+    32: 32, // 大风 -> Windy
+    33: 54, // 冰粒 -> Ice
+    34: 19, // 零星小雪 -> Flurries
+    35: 11, // 浓雾 -> Fog
+    36: 11, // 扩展 -> Fog
   };
 
 /**
@@ -176,43 +178,45 @@ export const HUAFENG_NIGHT_TO_ACCUWEATHER_MAP: Record<
   number
 > = {
   // 官方夜间映射表来自 ChinaWeatherData.java
-  // 只有 0 和 1 与白天不同，其他相同
-  0: 33, // 晴(夜间) -> Clear
+  // 基于 AccuWeather 2011 年官方天气码 (1-54)
+  // 只有 0 和 1 与白天不同
+  0: 33, // 晴(夜间) -> Clear (Night)
   1: 38, // 多云(夜间) -> Mostly Cloudy (Night)
-  2: 8, // 阴 -> Cloudy
-  3: 18, // 雨 -> Rain
-  4: 15, // 雷阵雨 -> Thunderstorm
-  5: 51, // 雾 -> Sunny (官方映射)
-  6: 29, // 雪 -> Fog (官方映射)
-  7: 14, // 雨夹雪 -> Sleet
-  8: 13, // 小雨 -> Light Rain
-  9: 18, // 中雨 -> Rain
-  10: 15, // 大雨 -> Thunderstorm
-  11: 22, // 暴雨 -> Heavy Rain
-  12: 22, // 大暴雨 -> Heavy Rain
-  13: 23, // 特大暴雨 -> Tropical Storm
-  14: 21, // 冻雨 -> Freezing Rain
-  15: 19, // 阵雪 -> Flurries
-  16: 22, // 阵性降水 -> Heavy Rain
-  17: 22, // 阵性雨夹雪 -> Heavy Rain
-  18: 11, // 冰雹 -> Hail
-  19: 26, // 浮尘 -> Dust
-  20: 52, // 扬沙 -> Haze
-  21: 13, // 强沙尘暴 -> Light Rain (官方映射)
-  22: 15, // 霾 -> Thunderstorm (官方映射)
-  23: 15, // 雾凇 -> Thunderstorm (官方映射)
-  24: 15, // 雨凇 -> Thunderstorm (官方映射)
-  25: 15, // 沙尘暴 -> Thunderstorm (官方映射)
-  26: 19, // 强沙尘暴 -> Flurries (官方映射)
-  27: 22, // 龙卷风 -> Heavy Rain (官方映射)
-  28: 22, // 飑线 -> Heavy Rain (官方映射)
-  29: 53, // 轻雾 -> Haze (官方映射)
-  30: 52, // 大雾 -> Haze (官方映射)
-  31: 52, // 浓雾 -> Haze (官方映射)
-  32: 32, // 夜间晴 -> Clear (Night) (官方映射)
-  33: 54, // 强浓雾/特强浓雾 -> Smoke (官方映射)
-  34: 19, // -> Flurries (官方映射)
-  35: 11, // -> Hail (官方映射)
+  2: 8, // 阴 -> Dreary (Overcast)
+  3: 18, // 中雨 -> Rain
+  4: 15, // 雷阵雨 -> T-Storms
+  5: 51, // 小雨 -> Light Rain
+  6: 29, // 雨夹雪 -> Rain and Snow
+  7: 14, // 阵雨 -> Partly Sunny w/ Showers
+  8: 13, // 阴有阵雨 -> Mostly Cloudy w/ Showers
+  9: 18, // 大雨 -> Rain
+  10: 15, // 雷暴 -> T-Storms
+  11: 22, // 中雪 -> Snow
+  12: 22, // 大雪 -> Snow
+  13: 23, // 阴有雪 -> Mostly Cloudy w/ Snow
+  14: 21, // 阵雪 -> Partly Sunny w/ Flurries
+  15: 19, // 小雪 -> Flurries
+  16: 22, // 暴雪 -> Snow
+  17: 22, // 强降雪 -> Snow
+  18: 11, // 雾 -> Fog
+  19: 26, // 冻雨 -> Freezing Rain
+  20: 52, // 小雪 -> Light Snow
+  21: 13, // 阴阵雨 -> Mostly Cloudy w/ Showers
+  22: 15, // 雷阵雨 -> T-Storms
+  23: 15, // 强雷阵雨 -> T-Storms
+  24: 15, // 雷雨 -> T-Storms
+  25: 15, // 暴雷 -> T-Storms
+  26: 19, // 小阵雪 -> Flurries
+  27: 22, // 中阵雪 -> Snow
+  28: 22, // 大阵雪 -> Snow
+  29: 53, // 风雪 -> Blowing Snow
+  30: 52, // 小雪 -> Light Snow
+  31: 52, // 中雪 -> Light Snow
+  32: 32, // 大风 -> Windy
+  33: 54, // 冰粒 -> Ice
+  34: 19, // 零星小雪 -> Flurries
+  35: 11, // 浓雾 -> Fog
+  36: 11, // 扩展 -> Fog
 };
 
 /**
@@ -233,45 +237,46 @@ export const HUAFENG_WEEK_MAP: Record<number, string> = {
 
 /**
  * 华风天气代码 → 中文描述映射
+ * 基于 AccuWeather 2011 年官方天气码和 ChinaWeatherData.java 映射表
  */
 export const HUAFENG_CONDITION_TEXT: Record<HTCHuaFengWeatherCode, string> = {
   0: '晴',
   1: '多云',
   2: '阴',
-  3: '雨',
+  3: '中雨',
   4: '雷阵雨',
-  5: '雾',
-  6: '雪',
-  7: '雨夹雪',
-  8: '小雨',
-  9: '中雨',
-  10: '大雨',
-  11: '暴雨',
-  12: '大暴雨',
-  13: '特大暴雨',
-  14: '冻雨',
-  15: '阵雪',
-  16: '阵性降水',
-  17: '阵性雨夹雪',
-  18: '冰雹',
-  19: '浮尘',
-  20: '扬沙',
-  21: '强沙尘暴',
-  22: '霾',
-  23: '雾凇',
-  24: '雨凇',
-  25: '沙尘暴',
-  26: '强沙尘暴',
-  27: '龙卷风',
-  28: '飑线',
-  29: '轻雾',
-  30: '大雾',
-  31: '浓雾',
-  32: '强浓雾',
-  33: '特强浓雾',
-  34: '霾',
-  35: '中度霾',
-  36: '重度霾',
+  5: '小雨',
+  6: '雨夹雪',
+  7: '阵雨',
+  8: '阴有阵雨',
+  9: '大雨',
+  10: '雷暴',
+  11: '中雪',
+  12: '大雪',
+  13: '阴有雪',
+  14: '阵雪',
+  15: '小雪',
+  16: '暴雪',
+  17: '强降雪',
+  18: '雾',
+  19: '冻雨',
+  20: '小雪',
+  21: '阴阵雨',
+  22: '雷阵雨',
+  23: '强雷阵雨',
+  24: '雷雨',
+  25: '暴雷',
+  26: '小阵雪',
+  27: '中阵雪',
+  28: '大阵雪',
+  29: '风雪',
+  30: '小雪',
+  31: '中雪',
+  32: '大风',
+  33: '冰粒',
+  34: '零星小雪',
+  35: '浓雾',
+  36: '雾',
 };
 
 /**
@@ -321,16 +326,17 @@ export const QWEATHER_TO_HUAFENG_MAP: Record<string, HTCHuaFengWeatherCode> = {
   '405': 7, // 雨雪天气
   '406': 7, // 阵雨夹雪
   '407': 15, // 阵雪
-  // 雾/霾 (基于官方华风→Accu映射调整)
-  // 华风 5 → Accu 51 (可能是雾，需要验证)
-  // 华风 29-33 → Accu 52,53,54 (雾/霾系列)
-  '500': 5, // 薄雾 -> 华风 5 (→ Accu 51，需要验证)
-  '501': 5, // 雾 -> 华风 5 (→ Accu 51，需要验证)
-  '502': 22, // 霾 -> 华风 22 (→ Accu 15，需要验证)
-  '503': 29, // 浓雾 -> 华风 29 (→ Accu 53 Haze)
-  '504': 33, // 强浓雾 -> 华风 33 (→ Accu 54 Smoke)
-  '507': 22, // 中度霾 -> 华风 22 (→ Accu 15)
-  '508': 22, // 重度霾 -> 华风 22 (→ Accu 15)
+  // 雾/霾 (基于 AccuWeather 2011 官方码)
+  // 华风 18 -> Accu 11 (Fog)
+  // 华风 35 -> Accu 11 (Fog)
+  // 华风 36 -> Accu 11 (Fog)
+  '500': 18, // 薄雾 -> 华风 18 (雾 -> Fog)
+  '501': 18, // 雾 -> 华风 18 (雾 -> Fog)
+  '502': 35, // 霾 -> 华风 35 (浓雾 -> Fog)
+  '503': 35, // 浓雾 -> 华风 35 (浓雾 -> Fog)
+  '504': 35, // 强浓雾 -> 华风 35 (浓雾 -> Fog)
+  '507': 35, // 中度霾 -> 华风 35 (浓雾 -> Fog)
+  '508': 35, // 重度霾 -> 华风 35 (浓雾 -> Fog)
   // 沙尘
   '800': 19, // 浮尘
   '801': 20, // 扬沙
