@@ -14,18 +14,6 @@ console.log('zteWeatherRouter imported successfully');
 const app = express();
 
 // 中间件
-// 保存原始 body buffer 用于 GBK 解码
-app.use('/zte/getweatheru.asmx', (req, res, next) => {
-  let data = '';
-  req.on('data', chunk => {
-    data += chunk;
-  });
-  req.on('end', () => {
-    (req as any).rawBody = Buffer.from(data, 'binary');
-    next();
-  });
-});
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

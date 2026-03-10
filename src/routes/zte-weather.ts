@@ -167,26 +167,7 @@ async function handleWeatherDataRequest(
   req: express.Request,
   res: express.Response
 ): Promise<void> {
-  // WeatherTV 使用 GBK 编码，需要解码
-  let { dataType, sname, code } = req.body;
-
-  // 尝试解码 GBK 编码的中文
-  try {
-    if (sname && sname.includes('??')) {
-      // 获取原始 buffer 并解码为 GBK
-      const rawBody = (req as any).rawBody;
-      if (rawBody) {
-        const decodedBody = iconv.decode(rawBody, 'gbk');
-        const params = new URLSearchParams(decodedBody);
-        dataType = params.get('dataType') || dataType;
-        sname = params.get('sname') || sname;
-        code = params.get('code') || code;
-        console.log('Decoded GBK body:', { dataType, sname, code });
-      }
-    }
-  } catch (error) {
-    console.error('GBK decode error:', error);
-  }
+  const { dataType, sname, code } = req.body;
 
   console.log('WeatherTV /getData Request:', { dataType, sname, code });
 
