@@ -19,7 +19,7 @@ datasource db {
 model ZteCity {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  cityId    String   @unique  // 和风API城市ID
+  cityId    String   @unique  // 和风 API 城市 ID
   
   // 站点信息（WeatherTV 需要）
   stationId   String?
@@ -33,6 +33,78 @@ model ZteCity {
   
   createdAt   BigInt
   updatedAt   BigInt
+}
+
+// ============================================
+// ZTE 活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model ZteActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
+}
+
+// ============================================
+// HTC AccuWeather 活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model HtcAccuActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
+}
+
+// ============================================
+// HTC 华风天气活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model HtcHuaFengActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
+}
+
+// ============================================
+// HTC G13 活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model HtcG13ActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
 }
 
 // ============================================

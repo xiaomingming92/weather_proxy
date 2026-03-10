@@ -208,3 +208,95 @@ HTC 并没有一一对应所有 54 种 Accu 天气码，而是做了压缩：
 ---
 
 **文档维护**: 根据实际测试结果更新映射表
+
+
+
+这些编号确实存在于早期的 AccuWeather icon 体系中，但：
+
+部分是 旧版遗留
+
+部分是 Web 端使用，Android SDK 未必内置
+
+部分是 极少使用的过渡编号
+
+下面给你完整补齐。
+
+一、9 / 10
+Code	含义	说明
+9	Not Used	预留编号
+10	Not Used	预留编号
+
+早期文档中直接标注为 unused。
+
+二、16 / 17
+Code	英文	含义
+16	Mostly Cloudy w/ T-Storms	多云伴雷暴
+17	Partly Sunny w/ T-Storms	局部晴伴雷暴
+
+后来被 41 / 42 体系替代：
+
+41 = Partly Cloudy w/ T-Storms
+
+42 = Mostly Cloudy w/ T-Storms
+
+HTC 多数 ROM 直接跳过 16/17。
+
+三、20
+Code	英文	含义
+20	Mostly Cloudy w/ Flurries	多云伴小阵雪
+
+后来被 43 替代：
+
+43 = Mostly Cloudy w/ Flurries
+
+四、25
+Code	英文	含义
+25	Sleet	雨夹冰粒
+
+注意：
+
+29 = Rain and Snow（雨夹雪）
+
+25 = 冰雨夹雪（更偏冰粒）
+
+很多 Android 客户端直接压缩到 26 或 29。
+
+五、27 / 28
+Code	英文	含义
+27	Mostly Cloudy w/ Sleet	多云伴雨夹冰
+28	Partly Sunny w/ Sleet	局部晴伴雨夹冰
+
+这两个极少出现在移动端。
+
+六、45–50
+
+这是 Web 端扩展 severe 系列。
+
+Code	英文	含义
+45	Thundershowers	雷阵雨
+46	Snow Showers	阵雪
+47	Isolated T-Storms	局部雷暴
+48	Scattered T-Storms	分散雷暴
+49	Freezing Drizzle	冻毛毛雨
+50	Drizzle	毛毛雨
+
+但：
+
+Android 2011 SDK 基本不使用 45–50
+
+HTC ROM 资源包里通常没有对应动画目录
+
+通常被压缩到 12 / 15 / 22
+
+七、为什么你在 HTC 映射表里看不到这些
+
+因为 HTC 当年只保留：
+
+1–44 + 51–54 中常用部分
+
+并且进一步压缩。
+
+也就是说：
+
+这些 code 在 Accu 标准体系里存在，
+但在 HTC 2011 Android 实现里基本未用。

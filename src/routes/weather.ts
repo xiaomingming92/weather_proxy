@@ -11,6 +11,7 @@ import weatherApi from '@/services/weather-api.js';
 import dataTransform from '@/services/zte/data-transform.js';
 import cache from '@/services/cache.js';
 import { zteCache } from '@/services/cache/index.js';
+import activeCityService from '@/services/zte/active-city-service.js';
 import { DataType, AppType } from '@/types/index.js';
 import type { ZteWeatherData } from '@/types/zte.js';
 
@@ -183,7 +184,7 @@ async function handleWeatherRequest(
   cache.set(cacheKey, xmlData);
   console.log('Data cached in memory for', cacheKey);
 
-  // 缓存数据到ZTE数据库
+  // 缓存数据到 ZTE 数据库
   const cacheDuration = await zteCache.getCacheDuration(dataType as string);
   await zteCache.createOrUpdateWeatherData(
     actualCityId,
@@ -192,6 +193,11 @@ async function handleWeatherRequest(
     cacheDuration
   );
   console.log('Data cached in ZTE database for', actualCityId, dataType);
+
+  // 添加到活跃城市表（用于定时同步）
+  if (sname) {
+    await activeCityService.addOrUpdateActiveCity(sname, actualCityId);
+  }
 
   res.set('Content-Type', 'application/xml');
   res.send(xmlData);
