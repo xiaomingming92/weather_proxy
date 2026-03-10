@@ -346,9 +346,61 @@ router.post('/getStationList', async (req, res) => {
     console.log('City List POST Request:', { flag });
 
     if (flag === 'allcity') {
-      const cityList = await generateCityList();
-      res.set('Content-Type', 'text/plain');
-      res.send(cityList);
+      // 生成 XML 格式的城市列表（WeatherTV 期望的格式）
+      // 使用备用城市列表
+      const fallbackCities = [
+        { id: '101010100', name: '北京', lat: '39.92', lon: '116.46' },
+        { id: '101020100', name: '上海', lat: '31.22', lon: '121.48' },
+        { id: '101280101', name: '广州', lat: '23.12', lon: '113.25' },
+        { id: '101280601', name: '深圳', lat: '22.52', lon: '114.05' },
+        { id: '101190101', name: '杭州', lat: '30.28', lon: '120.17' },
+        { id: '101200101', name: '扬州', lat: '32.39', lon: '119.42' },
+        { id: '101210101', name: '武汉', lat: '30.57', lon: '114.28' },
+        { id: '101040100', name: '重庆', lat: '29.56', lon: '106.55' },
+        { id: '101250101', name: '长沙', lat: '28.20', lon: '112.97' },
+        { id: '101230101', name: '厦门', lat: '24.48', lon: '118.08' },
+        { id: '101260101', name: '贵阳', lat: '26.58', lon: '106.71' },
+        { id: '101270101', name: '昆明', lat: '25.04', lon: '102.71' },
+        { id: '101270801', name: '成都', lat: '30.67', lon: '104.06' },
+        { id: '101120101', name: '济南', lat: '36.68', lon: '116.98' },
+        { id: '101110101', name: '西安', lat: '34.27', lon: '108.95' },
+        { id: '101180101', name: '郑州', lat: '34.76', lon: '113.65' },
+        { id: '101100101', name: '太原', lat: '37.87', lon: '112.55' },
+        { id: '101030100', name: '天津', lat: '39.13', lon: '117.20' },
+        { id: '101070101', name: '沈阳', lat: '41.80', lon: '123.43' },
+        { id: '101060101', name: '长春', lat: '43.88', lon: '125.32' },
+        { id: '101050101', name: '哈尔滨', lat: '45.75', lon: '126.63' },
+        { id: '101220101', name: '福州', lat: '26.08', lon: '119.30' },
+        { id: '101300101', name: '南宁', lat: '22.82', lon: '108.32' },
+        { id: '101310101', name: '海口', lat: '20.03', lon: '110.33' },
+        { id: '101240101', name: '南昌', lat: '28.68', lon: '115.89' },
+        { id: '101090101', name: '石家庄', lat: '38.04', lon: '114.48' },
+        { id: '101130101', name: '合肥', lat: '31.83', lon: '117.27' },
+        { id: '101150101', name: '兰州', lat: '36.05', lon: '103.83' },
+        { id: '101160101', name: '银川', lat: '38.48', lon: '106.27' },
+        { id: '101170101', name: '西宁', lat: '36.62', lon: '101.77' },
+        { id: '101080101', name: '呼和浩特', lat: '40.80', lon: '111.67' },
+        { id: '101280701', name: '乌鲁木齐', lat: '43.78', lon: '87.60' },
+      ];
+
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      xml += '<CityList>\n';
+
+      for (const city of fallbackCities) {
+        xml += '  <City>\n';
+        xml += `    <CityID>${city.id}</CityID>\n`;
+        xml += `    <CityName>${city.name}</CityName>\n`;
+        xml += `    <StationID>${city.id}</StationID>\n`;
+        xml += `    <Lat>${city.lat}</Lat>\n`;
+        xml += `    <Lon>${city.lon}</Lon>\n`;
+        xml += '  </City>\n';
+      }
+
+      xml += '</CityList>';
+
+      console.log(`Returning ${fallbackCities.length} cities in XML format`);
+      res.set('Content-Type', 'application/xml; charset=utf-8');
+      res.send(xml);
       return;
     }
 
