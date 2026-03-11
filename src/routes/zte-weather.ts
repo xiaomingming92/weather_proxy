@@ -15,6 +15,7 @@ import type { ZteWeatherData } from '@/types/zte.js';
 import axios from 'axios';
 import { config } from '@/config/index.js';
 import iconv from 'iconv-lite';
+import { buildNestedCityListXml } from '@/services/zte/citylist-xml-builder.js';
 
 const router = express.Router();
 
@@ -390,17 +391,115 @@ router.post('/getStationList', async (req, res) => {
 
 /**
  * GET /zte/getweatheru.asmx/getStationList
- * 城市列表接口（GET 方式，WeatherWidget 下载用）
+ * 城市列表接口（GET 方式）
+ * 支持两种格式：
+ * 1. WeatherWidget: ?dataType=zte&code=1D765B 返回嵌套 XML
+ * 2. WeatherTV: 无参数，返回逗号分隔城市列表
  */
 router.get('/getStationList', async (req, res) => {
   try {
-    console.log('City List GET Request');
+    const { dataType, code } = req.query;
+    console.log('City List GET Request:', { dataType, code });
+
+    // WeatherWidget 请求：返回嵌套 XML 格式
+    if (dataType === 'zte' && code === '1D765B') {
+      console.log('[ZTE] WeatherWidget city list request detected');
+
+      // 从数据库获取所有城市数据
+      const cities = await prisma.zteCity.findMany({
+        select: {
+          cityId: true,
+          name: true,
+          latitude: true,
+          longitude: true,
+        },
+        orderBy: { name: 'asc' },
+      });
+
+      if (cities.length === 0) {
+        console.warn('[ZTE] No cities found in database, syncing from API...');
+        await citySync.syncCityListFromAPI();
+        // 重新获取
+        const refreshedCities = await prisma.zteCity.findMany({
+          select: {
+            cityId: true,
+            name: true,
+            latitude: true,
+            longitude: true,
+          },
+          orderBy: { name: 'asc' },
+        });
+
+        // 转换数据格式
+        const cityDataList = refreshedCities.map(city => ({
+          cityId: city.cityId,
+          name: city.name,
+          latitude: city.latitude,
+          longitude: city.longitude,
+        }));
+
+        const xml = buildNestedCityListXml(cityDataList);
+        console.log(
+          `[ZTE] Returning ${refreshedCities.length} cities in nested XML format`
+        );
+        res.set('Content-Type', 'application/xml; charset=utf-8');
+        res.send(xml);
+        return;
+      }
+
+      // 转换数据格式
+      const cityDataList = cities.map(city => ({
+        cityId: city.cityId,
+        name: city.name,
+        latitude: city.latitude,
+        longitude: city.longitude,
+      }));
+
+      const xml = buildNestedCityListXml(cityDataList);
+      console.log(
+        `[ZTE] Returning ${cities.length} cities in nested XML format`
+      );
+      res.set('Content-Type', 'application/xml; charset=utf-8');
+      res.send(xml);
+      return;
+    }
+
+    // WeatherTV 或其他请求：返回逗号分隔城市列表
+    console.log('[ZTE] WeatherTV city list request');
     const cityList = await generateCityList();
     res.set('Content-Type', 'text/plain');
     res.send(cityList);
   } catch (error) {
     console.error('Error in /getStationList GET:', error);
     res.status(500).send('error');
+  }
+});
+
+/**
+ * GET /zte/getadv.asmx/getAdvs
+ * 广告接口 - 返回空广告列表
+ * 用于兼容 hosts 方案的 WeatherTV_V880+ APK
+ * 虽然 APK 中广告功能已禁用，但接口需要存在以避免网络错误弹框
+ */
+router.get('/getadv.asmx/getAdvs', async (req, res) => {
+  try {
+    const { code } = req.query;
+    console.log('[ZTE] Advertisement request:', { code });
+
+    // 返回空的广告列表 XML
+    const xml =
+      '<?xml version="1.0" encoding="utf-8"?>\n<AdvGroup>\n</AdvGroup>';
+
+    res.set('Content-Type', 'application/xml; charset=utf-8');
+    res.send(xml);
+    console.log('[ZTE] Returning empty advertisement list');
+  } catch (error) {
+    console.error('Error in /getadv.asmx/getAdvs:', error);
+    // 即使出错也返回空广告列表，避免 APK 报错
+    const xml =
+      '<?xml version="1.0" encoding="utf-8"?>\n<AdvGroup>\n</AdvGroup>';
+    res.set('Content-Type', 'application/xml; charset=utf-8');
+    res.send(xml);
   }
 });
 
