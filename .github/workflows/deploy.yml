@@ -19,7 +19,7 @@ jobs:
       # 步骤2：添加服务器到 SSH 信任列表（避免首次登录的指纹验证）
       # - name: Add server to known_hosts
       #   run: |
-      #     ssh-keyscan -p 168-H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+      #     ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       # 步骤2：配置 SSH 免密登录到远端服务器
       - name: Setup SSH connection
@@ -30,7 +30,7 @@ jobs:
       # 步骤3：远程登录服务器，执行部署命令（核心）
       - name: Deploy to server
         run: |
-          ssh -p 168 \
+          ssh -p ${{ secrets.SSH_PORT }} \
           -o StrictHostKeyChecking=no \
           -o UserKnownHostsFile=/dev/null \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
