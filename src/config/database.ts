@@ -9,10 +9,10 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 validateEnvVariables();
 
 // 获取数据库连接URL
-const databaseUrl = env.get('DATABASE_URL');
+const databaseUrl = env.get('WEATHER_DATABASE_URL');
 
 if (!databaseUrl) {
-  throw new Error('[Database] DATABASE_URL environment variable is not set');
+  throw new Error('[Database] WEATHER_DATABASE_URL environment variable is not set');
 }
 
 console.log('[Database] Initializing database connection...');
