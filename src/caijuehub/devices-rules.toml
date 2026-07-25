@@ -1,0 +1,89 @@
+# 设备注册表 — 集中裁决层唯一直相源
+#
+# 新增设备只需在此文件添加一条 [[device]] 配置，
+# 然后运行 npm run generate:devices 即可。
+#
+# 字段说明：
+#   name                 设备标识（DeviceType 字面量）
+#   basePath             Express 路由前缀
+#   router               路由模块导入路径（@/ 开头 = src/）
+#   dataTransform        数据转换器导入路径，passThrough 表示直接透传 JSON
+#   cache                缓存策略导入路径
+#   activeCityService    活跃城市服务导入路径
+#   cron.forecastUpdate  预报更新 cron 表达式名（对应 CRON_SCHEDULES key）
+#   cron.cacheCleanup    缓存清理 cron 表达式名
+#   cron.activeCityCleanup 活跃城市清理 cron 表达式名
+#   cron.citySync        城市同步 cron 表达式名（可选）
+#   comment              备注说明（不参与代码生成）
+
+# ============================================
+# ZTE V880+ / WeatherTV / WeatherWidget
+# ============================================
+[[device]]
+name = "zte"
+basePath = "/zte/getweatheru.asmx"
+router = "@/routes/zte-weather.js"
+dataTransform = "@/services/zte/data-transform.js"
+cache = "@/services/cache/zte-cache.js"
+activeCityService = "@/services/zte/active-city-service.js"
+comment = "ZTE V880+ 终端，XML 格式"
+
+[device.cron]
+forecastUpdate = "ZTE_FORECAST_UPDATE"
+cacheCleanup = "ZTE_CACHE_CLEANUP"
+activeCityCleanup = "ZTE_ACTIVE_CITY_CLEANUP"
+citySync = "ZTE_CITY_SYNC"
+
+# ============================================
+# HTC AccuWeather 国际版
+# ============================================
+[[device]]
+name = "htc-accu"
+basePath = "/widget"
+router = "@/routes/htc-accu-weather.js"
+dataTransform = "@/services/htc/htc-accu-data-transform.js"
+cache = "@/services/cache/htc-accu-cache.js"
+activeCityService = "@/services/htc/active-city-service.js"
+comment = "HTC AccuWeather 国际版，XML 格式"
+
+[device.cron]
+forecastUpdate = "HTC_ACCU_FORECAST_UPDATE"
+cacheCleanup = "HTC_ACCU_CACHE_CLEANUP"
+activeCityCleanup = "HTC_ACCU_ACTIVE_CITY_CLEANUP"
+citySync = "HTC_ACCU_CITY_SYNC"
+
+# ============================================
+# HTC 华风天气（国行）
+# ============================================
+[[device]]
+name = "htc-huafeng"
+basePath = "/getweatheru.asmx"
+router = "@/routes/htc-huafeng-weather.js"
+dataTransform = "@/services/htc/htc-huafeng-data-transform.js"
+cache = "@/services/cache/htc-huafeng-cache.js"
+activeCityService = "@/services/htc/huafeng-active-city-service.js"
+comment = "HTC 华风国行，XML 格式，缓存清理与 Accu 共享"
+
+[device.cron]
+forecastUpdate = "HTC_HUAFENG_FORECAST_UPDATE"
+cacheCleanup = "HTC_ACCU_CACHE_CLEANUP"     # 与 Accu 共享
+activeCityCleanup = "HTC_HUAFENG_ACTIVE_CITY_CLEANUP"
+citySync = "HTC_HUAFENG_CITY_SYNC"
+
+# ============================================
+# HTC G13 新天气 App
+# ============================================
+[[device]]
+name = "htc-g13"
+basePath = "/api/v1/htc-g13"
+router = "@/routes/htc-g13-weather.js"
+dataTransform = "passThrough"              # 无独立 transform，直接透传 JSON
+cache = "@/services/cache/htc-g13-cache.js"
+activeCityService = "@/services/htc/g13-active-city-service.js"
+comment = "HTC G13 新 App，JSON 格式，无 XML 转换，缓存清理与 Accu 共享"
+
+[device.cron]
+forecastUpdate = "HTC_G13_FORECAST_UPDATE"
+cacheCleanup = "HTC_ACCU_CACHE_CLEANUP"    # 与 Accu 共享
+activeCityCleanup = "HTC_G13_ACTIVE_CITY_CLEANUP"
+citySync = "HTC_G13_CITY_SYNC"
