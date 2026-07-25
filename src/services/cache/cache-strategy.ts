@@ -67,8 +67,14 @@ export interface CacheStrategy {
 
 import zteCache from './zte-cache.js';
 import htcAccuCache from './htc-accu-cache.js';
+// HuaFeng/G13 — Round 4 接入，本轮仅声明导入
+import htcHuaFengCache from './htc-huafeng-cache.js';
+import htcG13Cache from './htc-g13-cache.js';
 
-export type DeviceType = 'zte' | 'htc';
+// DeviceType 从 DeviceRegistry 导入（唯一真相源）
+import type { DeviceType } from '../device-registry.js';
+
+export type { DeviceType };
 
 export class CacheContext {
   private strategy: CacheStrategy;
@@ -76,10 +82,18 @@ export class CacheContext {
   constructor(deviceType: DeviceType) {
     if (deviceType === 'zte') {
       this.strategy = zteCache as unknown as CacheStrategy;
-    } else if (deviceType === 'htc') {
+    } else if (deviceType === 'htc-accu') {
       this.strategy = htcAccuCache as unknown as CacheStrategy;
+    } else if (deviceType === 'htc-huafeng') {
+      // Round 4 接入：本轮占位，不抛异常以支持类型编译
+      this.strategy = htcHuaFengCache as unknown as CacheStrategy;
+    } else if (deviceType === 'htc-g13') {
+      // Round 4 接入：本轮占位，不抛异常以支持类型编译
+      this.strategy = htcG13Cache as unknown as CacheStrategy;
     } else {
-      throw new Error(`Unknown device type: ${deviceType}`);
+      // 穷尽性检查：确保所有 DeviceType 值都已处理
+      const _exhaustive: never = deviceType;
+      throw new Error(`Unknown device type: ${_exhaustive}`);
     }
   }
 

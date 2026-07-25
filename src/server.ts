@@ -1,15 +1,13 @@
 import express from 'express';
 import { config } from './config/index.js';
 import weatherRouter from './routes/weather.js';
-import zteWeatherRouter from './routes/zte-weather.js';
-import htcAccuWeatherRouter from './routes/htc-accu-weather.js';
-import htcHuaFengWeatherRouter from './routes/htc-huafeng-weather.js';
-import htcG13WeatherRouter from './routes/htc-g13-weather.js';
 import configRouter from './routes/config.js';
 import cronService from './services/cron-service.js';
 
-console.log('weatherRouter imported successfully');
-console.log('zteWeatherRouter imported successfully');
+// DeviceRegistry 自动注册路由（替代手动 app.use）
+import { deviceRegistry } from './services/device-registry.js';
+// 导入设备配置触发注册（副作用：deviceRegistry.register()）
+import './config/devices.js';
 
 const app = express();
 
@@ -23,12 +21,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// 路由
+// 路由 — DeviceRegistry 自动挂载（替代手动 app.use）
 app.use('/api/weather', weatherRouter); // WeatherWidget_Mod.apk
-app.use('/zte/getweatheru.asmx', zteWeatherRouter); // WeatherTV_V880+.apk (新增)
-app.use('/widget', htcAccuWeatherRouter); // HTC AccuWeather
-app.use('/getweatheru.asmx', htcHuaFengWeatherRouter); // HTC 华风天气
-app.use('/api/v1/htc-g13', htcG13WeatherRouter); // HTC G13
+deviceRegistry.applyRoutes(app);
 app.use('/api/config', configRouter); // 配置接口
 
 // 错误处理中间件
