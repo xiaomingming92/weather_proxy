@@ -1,207 +1,101 @@
 # 天气代理服务 (Weather Proxy)
 
-## 项目介绍
+> 有些老伙计，硬件还硬朗，只是被时间忘了。
 
-天气代理服务是一个基于 TypeScript 和 Express.js 开发的中间件服务，主要用于：
+## 它们是谁
 
-- 集成 Qweather的API，获取全球天气数据
-- 为不同应用类型（如 V880的 WeatherWidget、WeatherTV_V880）提供标准化的 XML 格式天气数据
-- 实现多层缓存机制，提高响应速度并减少 API 调用
-- 提供 RESTful API 接口，方便其他应用集成
+**中兴 V880（Blade / 刀锋）**。2010 年，充话费送的「千元神机」。高通 MSM7227 单核 600MHz，256MB RAM，3.5 寸电容屏——放在今天连个网页都打不开，但当年它是多少人的第一台智能机。国外 Orange 版给了 512MB 运存，国内却只有 256MB——就为这，论坛里诞生了海量的刷机包。CM7、MIUI、乐蛙，搞机党们晚上不睡觉地刷，「V880 刷不死，就怕你手残」是那代人的接头暗号。日销量一度仅次于 iPhone 4，60 多个国家卖爆——但 15 年过去了，它的天气服务早就停了。
 
-## 功能特性
+**HTC G13（Wildfire S / 野火 S）**。2011 年，HTC 还是「安卓之王」。鹅卵石机身，3.2 寸屏，Sense 2.1 那个会翻页的时钟和雨刷动画，是智能手机 UX 设计的巅峰——不是冷冰冰的功能，是「人情味」。HTC 天气应用在 2025 年 12 月 18 日正式关停，伺服器一关，屏幕上的雨滴动画永远定格。
 
-- **多应用支持**：同时支持 WeatherWidget 和 WeatherTV 等多种应用类型
-- **数据格式转换**：将 Qweather API 返回的 JSON 格式数据转换为应用所需的 XML 格式
-- **多层缓存**：实现内存缓存和 Prisma 数据库缓存双层缓存机制
-- **定时任务**：支持定时更新天气数据
-- **健康检查**：提供健康检查端点，方便监控服务状态
-- **错误处理**：完善的错误处理和日志记录机制
+这些设备硬件完好，只是软件服务被时代抛弃了。**它们不配被扔进抽屉。**
+
+## 这个项目做什么
+
+- 🌤️ **救回天气** — 通过代理服务，让 V880 和 G13 重新收到实时天气数据
+- 🕐 **同步时间** — 配合 [timeSync](https://github.com/xiaomingming92/timeSync) 授时服务，老设备时间不准的问题也能一并解决
+- 🔧 **集中裁决层（Caijuehub）** — 设备配置从硬编码 TypeScript 升级为 TOML 声明式规则，新增机型只需 10 行配置
+
+本项目仅限技术讨论，不涉及法律讨论和商业用途。
+
+---
+
+## 技术细节
+
+> 架构设计、集中裁决层、14 端点清单、适配指南、ADD范式中人机协作部分演进证据链 → [docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md](docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md)
+
+---
 
 ## 技术栈
 
-- **TypeScript**：类型安全的 JavaScript 超集
-- **Express.js**：轻量级 Web 框架
-- **Prisma ORM**：现代数据库 ORM 工具
-- **MariaDB**：关系型数据库
-- **Axios**：HTTP 客户端
-- **node-cron**：定时任务库
-- **node-cache**：内存缓存库
-- **xmlbuilder2**：XML 构建工具
-- **ESLint + Prettier**：代码质量和格式化工具
+- **TypeScript** + **Express.js** — 服务主体
+- **Prisma ORM** — MariaDB（天气数据）+ PostgreSQL（devlog 审计）
+- **QWeather API** — 上游数据源
+- **node-cron** — 定时刷新
+- **Smol TOML** — 集中裁决层规则解析
+- **Vitest** — 单元测试（45 用例全覆盖）
+- **Podman** — 容器化数据库
+
+## 快速开始
+
+```bash
+# 环境要求：Node.js ^24.11 + MariaDB + PostgreSQL (podman)
+
+# 安装
+npm install
+
+# 启动数据库
+npm run podman-add-coder-up
+
+# 建表（自动备份 → prisma db push）
+bash scripts/db-ensure.sh postgresql podman --migrate
+
+# 启动
+npm run dev
+```
+
+**配置 `.env.development`**：
+
+```env
+WEATHER_DATABASE_URL="mysql://<user>:<password>@localhost:3306/weather-proxy"
+DATABASE_URL="postgresql://<user>:<password>@localhost:5433/weather-proxy"
+QWEATHER_API_KEY=你的和风天气API密钥
+APIHost=https://api.qweather.com
+```
 
 ## 项目结构
 
 ```
 weather_proxy/
 ├── src/
-│   ├── config/         # 配置文件
-│   ├── routes/         # 路由
-│   │   ├── weather.ts  # 天气数据接口
-│   │   └── config.ts   # 配置接口
-│   ├── services/       # 服务层
-│   │   ├── data-transform.ts    # 数据格式转换
-│   │   ├── weather-api.ts       # 天气 API 调用
-│   │   ├── cache.ts             # 内存缓存
-│   │   ├── prisma-cache.ts      # 数据库缓存
-│   │   ├── cron-service.ts      # 定时任务
-│   │   └── time-utils.ts        # 时间工具
-│   ├── types/          # 类型定义
-│   ├── server.ts       # 服务器入口
-│   └── utils/          # 工具函数
-├── .trae/documents/    # 项目文档
-├── package.json        # 项目配置
-├── tsconfig.json       # TypeScript 配置
-├── tsconfig.prod.json  # 生产环境 TypeScript 配置
-└── README.md           # 项目说明
+│   ├── caijuehub/            ← 集中裁决层（三层架构）
+│   │   ├── caijue.toml        ←   索引：注册裁决入口
+│   │   ├── transcribe.ts      ←   引擎：TOML → 策略文件
+│   │   ├── devices-rules.toml ←   规则：设备注册声明
+│   │   ├── scaffold-rules.toml←   规则：Prisma 模板声明
+│   │   └── strategies/        ←   策略：GENERATED 数据
+│   ├── config/                ← 配置（devices.ts 消费策略数据）
+│   ├── routes/                ← 4 设备路由（14 端点）
+│   ├── services/              ← 业务层
+│   │   ├── device-registry.ts ←   DeviceRegistry 单例
+│   │   ├── cache/             ←   缓存策略模式
+│   │   └── cron-service.ts    ←   统一调度器（232 行）
+│   └── server.ts              ← Express 入口
+├── scripts/
+│   ├── scaffold-device.ts     ← Prisma 模型脚手架
+│   └── db-ensure.sh           ← 数据库初始化 + 备份
+├── prisma/
+│   ├── schema.prisma          ← 天气数据（MariaDB）
+│   └── add/schema.prisma      ← 审计数据（PostgreSQL）
+├── APK/                       ← 已修改 APK（仅调试用）
+├── .qoder/                    ← ADD 工作流产物
+│   ├── plans/                 ←   计划文档
+│   ├── reviews/               ←   评审文档
+│   └── specs/                 ←   规格文档
+└── tests/                     ← Vitest 测试
 ```
-
-## 快速开始
-
-### 环境要求
-
-- Node.js ^24.11.0(volta) & prod下的pm2
-- Prisma&@prisma/adapter-mariadb
-- npm 或 yarn
-
-### 安装依赖
-
-```bash
-npm install
-```
-
-### 配置说明
-
-1. 复制 `.env.example` 文件为 开发环境`.env`;复制 `.env.example` 文件为生产环境`.env.prod`
-2. 配置环境变量：
-   - `DATABASE_URL`：数据库连接字符串
-   - `QWEATHER_API_KEY`：和风天气 API 密钥
-   - `APIHost`: 和风天气API主机地址，在和风天气控制台-项目管理-项目设置中查看
-   - `PORT`：服务端口
-   - `HOST`：服务主机
-
-### 启动服务
-
-**开发环境：**
-
-```bash
-npm run dev
-```
-
-**生产环境：**
-
-```bash
-npm run build
-npm run pm2:start
-```
-
-## API 接口
-
-### 天气数据接口
-
-**请求 URL：** `/api/weather`
-
-**请求方法：** GET
-
-**请求参数：**
-
-| 参数名 | 类型 | 必需 | 描述 |
-|-------|------|------|------|
-| dataType | string | 是 | 数据类型，如 CURRENT_WEATHER、FORECAST_WEATHER 等 |
-| sname | string | 否 | 城市名称 |
-| cityId | string | 否 | 城市 ID |
-| location | string | 否 | 经纬度坐标，格式为 "经度,纬度" |
-| code | string | 否 | 应用类型代码，50532E 为 WeatherWidget，1D765B 为 WeatherTV |
-
-**响应格式：** XML
-
-**示例请求：**
-
-```bash
-curl "http://localhost:1888/api/weather?dataType=CURRENT_WEATHER&sname=北京&code=50532E"
-```
-
-### 健康检查接口
-
-**请求 URL：** `/health`
-
-**请求方法：** GET
-
-**响应格式：** JSON
-
-## 配置说明
-
-### 环境变量配置
-
-| 环境变量 | 描述 | 默认值 |
-|---------|------|--------|
-| NODE_ENV | 运行环境 | development |
-| PORT | 服务端口 | 1888 |
-| HOST | 服务主机 | localhost |
-| DATABASE_URL | 数据库连接字符串 | - |
-| QWEATHER_API_KEY | 和风天气 API 密钥 | - |
-
-### 数据库配置
-
-使用 Prisma ORM 连接 MariaDB 数据库，配置文件为 `prisma/schema.prisma`。
-
-### 缓存配置
-
-- **内存缓存**：默认缓存时间为 30 分钟
-- **数据库缓存**：根据数据类型设置不同的缓存时间
-
-## 文档树总览
-
-### 项目文档
-
-| 文档名称 | 描述 | 链接 |
-|---------|------|------|
-| Prismas使用文档.md | Prisma ORM 的使用说明文档 | [查看](./.trae/documents/Prismas使用文档.md) |
-| Prisma持久化缓存实现计划.md | 基于 Prisma 的持久化缓存实现方案 | [查看](./.trae/documents/Prisma持久化缓存实现计划.md) |
-| TypeScript项目优化与自动化部署配置.md | TypeScript 项目的优化和自动化部署配置指南 | [查看](./.trae/documents/TypeScript项目优化与自动化部署配置.md) |
-| WeatherWidgetAPI适配说明.md | WeatherWidget 应用的 API 适配说明 | [查看](./.trae/documents/WeatherWidgetAPI适配说明.md) |
-| WeatherWidget数据流转分析.md | WeatherWidget 应用的数据流转过程分析 | [查看](./.trae/documents/WeatherWidget数据流转分析.md) |
-| WeatherWidget数据结构适配计划.md | WeatherWidget 应用的数据结构适配方案 | [查看](./.trae/documents/WeatherWidget数据结构适配计划.md) |
-| plan_20260211_005937.md | 项目计划文档 | [查看](./.trae/documents/plan_20260211_005937.md) |
-| 优化天气数据转换逻辑与和风天气API集成.md | 天气数据转换逻辑优化和和风天气 API 集成方案 | [查看](./.trae/documents/优化天气数据转换逻辑与和风天气API集成.md) |
-| 修复WeatherTV_V880+ _数据未成功下载！_错误.md | 修复 WeatherTV_V880+ 应用数据下载错误的方案 | [查看](./.trae/documents/修复WeatherTV_V880+ _数据未成功下载！_错误.md) |
-| 分析并优化天气数据响应.md | 天气数据响应的分析和优化方案 | [查看](./.trae/documents/分析并优化天气数据响应.md) |
-| 恢复WeatherWidget数据功能方案.md | 恢复 WeatherWidget 应用数据功能的方案 | [查看](./.trae/documents/恢复WeatherWidget数据功能方案.md) |
-| 添加缺失的天气API接口.md | 添加缺失的天气 API 接口的方案 | [查看](./.trae/documents/添加缺失的天气API接口.md) |
-| 解决PrismaClient初始化问题并正确连接MySQL数据库.md | 解决 PrismaClient 初始化问题和数据库连接方案 | [查看](./.trae/documents/解决PrismaClient初始化问题并正确连接MySQL数据库.md) |
-| 天气API供应商.md | 天气 API 供应商关系说明文档 | [查看](./.trae/documents/天气API供应商.md) |
-| 天气APK | 只调整了接口地址 | APK文件夹内，仅本地调试开发使用，不承担任何法律责任。仅证明项目数据流转使用，不建议其他人下载日常使用。必须V880的system/app/路径下，root:root & 644 |
-## 部署说明
-
-### 开发环境部署
-
-1. 安装依赖：`npm install`
-2. 启动开发服务器：`npm run dev`
-3. 服务将运行在 `http://localhost:1888`
-
-### 生产环境部署
-- CI/CD方式：目前适配了github的action
-- 手动部署方式：
-  1. 安装依赖：`npm install`
-  2. 构建项目：`npm run build`
-  3. 启动服务：`npm run pm2:start`
-  4. 服务将以 PM2 守护进程方式运行
-
-### PM2 配置
-
-- **启动服务**：`npm run pm2:start`
-- **停止服务**：`npm run pm2:stop`
-- **重启服务**：`npm run pm2:restart`
-
-## 许可证
-
-MIT License
 
 ## 联系方式
 
 - 项目维护者：[xiaomingming92](https://github.com/xiaomingming92)
 - 邮箱：wujixmm@gmail.com
-
----
-
-*本项目基于 TypeScript 和 Express.js 开发，旨在为不同应用提供标准化的天气数据服务。*

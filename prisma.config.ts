@@ -1,20 +1,18 @@
-/*
- * @Author       : Z2-WIN\xmm wujixmm@gmail.com
- * @Date         : 2026-02-06 09:21:52
- * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
- * @LastEditTime : 2026-02-09 13:08:59
- * @FilePath     : \decompile\weather_proxy\prisma.config.ts
- * @Description  :
- */
-import 'dotenv/config';
-import { defineConfig } from 'prisma/config';
+import dotenv from "dotenv";
+import { existsSync } from "fs";
+for (const f of [".env.development.local", ".env.development", ".env.local", ".env"]) {
+  if (existsSync(f)) { dotenv.config({ path: f }); break; }
+}
+import { defineConfig, env } from "prisma/config";
+
+// weather_proxy 双库：prisma/schema.prisma → MariaDB(WEATHER_DATABASE_URL)
+//                 prisma/add/schema.prisma → PostgreSQL(DATABASE_URL)
+// prisma db push 时通过命令行覆盖：DATABASE_URL="mysql://..." npx prisma db push --schema=prisma/schema.prisma
+const dbUrl = env("WEATHER_DATABASE_URL") || env("DATABASE_URL");
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
-  migrations: {
-    path: 'prisma/migrations',
-  },
+  schema: "prisma",
   datasource: {
-    url: process.env['DATABASE_URL'],
+    url: dbUrl,
   },
 });

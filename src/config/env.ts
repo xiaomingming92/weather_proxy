@@ -25,17 +25,21 @@ import fs from 'fs';
 
 let envFile = '.env';
 const prodEnvPath = path.resolve(projectRoot, '.env.prod');
-const devEnvPath = path.resolve(projectRoot, '.env');
+const devEnvPath = path.resolve(projectRoot, '.env.development');
+const defaultEnvPath = path.resolve(projectRoot, '.env');
 
-// 优先检查 .env.prod 文件是否存在
+// 优先级: .env.prod > .env.development > .env
 if (fs.existsSync(prodEnvPath)) {
   envFile = '.env.prod';
   console.log('[Config] Production environment detected, using .env.prod');
 } else if (fs.existsSync(devEnvPath)) {
-  console.log('[Config] Development environment detected, using .env');
+  envFile = '.env.development';
+  console.log('[Config] Development environment detected, using .env.development');
+} else if (fs.existsSync(defaultEnvPath)) {
+  console.log('[Config] Using .env');
 } else {
   console.error('[Config] No environment file found!');
-  throw new Error('No environment file found (.env or .env.prod)');
+  throw new Error('No environment file found (.env.development, .env, or .env.prod)');
 }
 
 const envFilePath = path.resolve(projectRoot, envFile);
@@ -52,7 +56,7 @@ try {
 
 // 验证必需的环境变量
 export function validateEnvVariables() {
-  const requiredVars = ['DATABASE_URL'];
+  const requiredVars = ['WEATHER_DATABASE_URL'];
   const missingVars = [];
 
   for (const varName of requiredVars) {

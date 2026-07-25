@@ -1,0 +1,41 @@
+// add.prisma — ADD 治理模型，独立于用户业务表
+
+model AddUser {
+  id              String          @id @default(cuid())
+  username        String          @unique
+  email           String?
+  devOperations   DevOperation[]
+  auditLogs       AuditLog[]
+}
+
+model DevOperation {
+  id          String   @id @default(cuid())
+  userId      String
+  user        AddUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planKeyword String
+  action      String
+  targetType  String
+  targetId    String
+  beforeState Json?
+  afterState  Json?
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@index([planKeyword])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        AddUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String
+  targetType  String
+  targetId    String
+  traceId     String?
+  beforeState Json?
+  afterState  Json?
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@index([traceId])
+}

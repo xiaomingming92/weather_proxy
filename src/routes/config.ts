@@ -1,7 +1,8 @@
 import express from 'express';
-import prismaCache from '../services/prisma-cache.js';
+import prismaCache from '@/services/prisma-cache.js';
+import { htcHuaFengCache } from '@/services/cache/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 获取所有缓存配置
 router.get('/cache', async (req, res) => {
@@ -179,6 +180,37 @@ router.delete('/weather-cache', async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Failed to clear weather cache',
+    });
+  }
+});
+
+// 清理华风天气缓存
+router.delete('/htc-huafeng-cache', async (req, res) => {
+  try {
+    const { cityCode } = req.query;
+
+    if (cityCode) {
+      // 清理指定城市的缓存
+      const result = await htcHuaFengCache.clearWeatherData(cityCode as string);
+      res.json({
+        status: 'ok',
+        message: `Deleted cache for city ${cityCode}`,
+        data: result,
+      });
+    } else {
+      // 清理所有华风天气缓存
+      const result = await htcHuaFengCache.clearWeatherData();
+      res.json({
+        status: 'ok',
+        message: `Deleted all ${result.deletedCount} HTC HuaFeng weather cache records`,
+        data: result,
+      });
+    }
+  } catch (error) {
+    console.error('Error clearing HTC HuaFeng cache:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to clear HTC HuaFeng cache',
     });
   }
 });

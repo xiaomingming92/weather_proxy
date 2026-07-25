@@ -1,0 +1,359 @@
+/*
+ * @Author       : Z2-WIN\xmm wujixmm@gmail.com
+ * @Date         : 2026-02-09 17:08:58
+ * @LastEditors  : Z2-WIN\xmm wujixmm@gmail.com
+ * @LastEditTime : 2026-02-12
+ * @FilePath     : \decompile\weather_proxy\src\types\weather.ts
+ * @Description  : 天气类型定义文件 - 采用基础类型 + 扩展类型架构
+ */
+
+// ============================================
+// 数据类型枚举
+// ============================================
+
+export enum DataType {
+  // WeatherWidget 类型
+  CURRENT_WEATHER_V3 = 'ztev3widgetskall', // Widget 实况（完整版）
+  FORECAST_WEATHER_V3 = 'ztev3widgetcfall', // Widget 预报（完整版）
+
+  // WeatherTV Widget 类型
+  WIDGET_SK = 'ztewidgetsk', // Widget 实况（简化版）
+  WIDGET_CF = 'ztewidgetcf', // Widget 预报（简化版）
+
+  // WeatherTV 主类型
+  MAIN_DATA = 'zte', // 主天气数据（完整）
+
+  // 城市列表
+  CITY_LIST = 'allcity', // 城市列表
+}
+
+export enum AppType {
+  WEATHER_WIDGET = 'weatherwidget',
+  WEATHER_TV = 'weathertv',
+  UNKNOWN = 'unknown',
+}
+
+// ============================================
+// 基础类型（Raw API 响应）
+// ============================================
+
+/**
+ * 和风天气 API - 实时天气响应（原始格式）
+ * 对应 /weather/now 接口
+ */
+export interface QWeatherNowResponse {
+  code: string;
+  now: {
+    temp: string;
+    icon: string;
+    text: string;
+    humidity: string;
+    windDir: string;
+    windScale: string;
+    obsTime: string;
+    pressure?: string;
+    windSpeed?: string;
+    vis?: string;
+    feelsLike?: string;
+    dew?: string;
+    cloud?: string;
+    precip?: string;
+    uvIndex?: string;
+  };
+}
+
+/**
+ * 和风天气 API - 天气预报响应（原始格式）
+ * 对应 /weather/7d 接口
+ */
+export interface QWeatherForecastResponse {
+  code: string;
+  daily: Array<{
+    fxDate: string;
+    tempMin: string;
+    tempMax: string;
+    iconDay: string;
+    iconNight: string;
+    textDay: string;
+    textNight: string;
+    windDirDay: string;
+    windDirNight?: string;
+    windScaleDay?: string;
+    windScaleNight?: string;
+    windSpeedDay?: string;
+    windSpeedNight?: string;
+    humidity?: string;
+    precip?: string;
+    pressure?: string;
+    vis?: string;
+    cloud?: string;
+    uvIndex?: string;
+    sunrise?: string;
+    sunset?: string;
+  }>;
+}
+
+/**
+ * 和风天气 API - 城市查询响应（原始格式）
+ * 对应 /geo/v2/city/lookup 接口
+ */
+export interface QWeatherLocationResponse {
+  code: string;
+  location: Array<{
+    id: string;
+    name: string;
+    country: string;
+    adm1: string;
+    lat: string;
+    lon: string;
+  }>;
+}
+
+// ============================================
+// 通用数据类型（各设备共享）- 使用泛型设计
+// ============================================
+
+/**
+ * 实时天气数据 - 基础类型（必填字段）
+ */
+export interface CurrentWeatherBase {
+  temp: string;
+  icon: string;
+}
+
+/**
+ * 实时天气数据 - HTC 扩展字段
+ */
+export interface CurrentWeatherHtcExt {
+  text: string;
+  humidity: string;
+  windDir: string;
+  windScale: string;
+  obsTime: string;
+}
+
+/**
+ * 实时天气数据 - V880 扩展字段
+ */
+export interface CurrentWeatherV880Ext {
+  updateTime: string;
+  pressure: string;
+  windSpeed: string;
+  vis: string;
+  feelsLike: string;
+  dew: string;
+  cloud: string;
+  precip: string;
+  uvIndex: string;
+}
+
+/**
+ * 实时天气数据 - 完整类型（联合类型）
+ */
+export type CurrentWeather = CurrentWeatherBase &
+  Partial<CurrentWeatherHtcExt> &
+  Partial<CurrentWeatherV880Ext>;
+
+/**
+ * 预报天数据 - 基础类型（必填字段）
+ */
+export interface DailyForecastBase {
+  fxDate: string;
+  tempMin: string;
+  tempMax: string;
+  iconDay: string;
+  iconNight: string;
+}
+
+/**
+ * 预报天数据 - HTC 扩展字段
+ */
+export interface DailyForecastHtcExt {
+  textDay: string;
+  textNight: string;
+}
+
+/**
+ * 预报天数据 - 通用扩展字段
+ */
+export interface DailyForecastCommonExt {
+  windDirDay: string;
+  windDirNight: string;
+  windScaleDay: string;
+  windScaleNight: string;
+  windSpeedDay: string;
+  windSpeedNight: string;
+  humidity: string;
+  precip: string;
+  pressure: string;
+  vis: string;
+  cloud: string;
+  uvIndex: string;
+  sunrise: string;
+  sunset: string;
+  week: string;
+}
+
+/**
+ * 预报天数据 - 完整类型（联合类型）
+ */
+export type DailyForecast = DailyForecastBase &
+  Partial<DailyForecastHtcExt> &
+  Partial<DailyForecastCommonExt>;
+
+/**
+ * 城市信息（通用格式）
+ */
+export interface CityInfo {
+  id: string;
+  name: string;
+  country?: string;
+  adm1?: string;
+  lat?: string;
+  lon?: string;
+  sunrise?: string;
+  sunset?: string;
+  stationId?: string;
+  longitude?: string;
+  latitude?: string;
+  postcode?: string;
+}
+
+/**
+ * 小时预报数据（通用格式）
+ */
+export interface HourlyForecast {
+  fxTime: string;
+  temp: string;
+  icon: string;
+  text: string;
+  wind360: string;
+  windDir: string;
+  windScale: string;
+  windSpeed: string;
+  humidity: string;
+  precip: string;
+  pressure: string;
+  vis: string;
+  cloud: string;
+  dew: string;
+}
+
+/**
+ * 天气指数数据（通用格式）
+ */
+export interface WeatherIndex {
+  date: string;
+  type: string;
+  name: string;
+  category: string;
+  text: string;
+  level?: string;
+}
+
+// ============================================
+// ZTE V880 专用类型
+// ============================================
+
+/**
+ * ZTE V880 天气数据格式
+ * 用于 WeatherWidget 和 WeatherTV 应用
+ */
+export interface ZteWeatherData {
+  now: CurrentWeather;
+  forecast: {
+    daily: DailyForecast[];
+    updateTime: string;
+  };
+  hourly?: {
+    hourly: HourlyForecast[];
+    updateTime: string;
+  };
+  indices?: {
+    daily: WeatherIndex[];
+    updateTime: string;
+  };
+  city: CityInfo;
+  advertisement?: {
+    cfFlag?: string;
+    skFlag?: string;
+    zuFlag?: string;
+  };
+  updateTime?: string;
+}
+
+// ============================================
+// HTC G13 专用类型
+// ============================================
+
+/**
+ * HTC G13 天气数据格式
+ * 兼容 AccuWeather API 格式
+ */
+export interface HtcWeatherData {
+  // API 响应码
+  code?: string;
+  // 城市信息（用于城市搜索）
+  location?: CityInfo[];
+  // 实时天气
+  now: CurrentWeather;
+  // 预报数据（HTC 使用顶层 daily）
+  daily: DailyForecast[];
+}
+
+// ============================================
+// 兼容类型（用于过渡期）
+// ============================================
+
+/**
+ * 通用天气数据类型（兼容旧代码）
+ * 同时满足 ZTE 和 HTC 的需求
+ * @deprecated 建议使用 ZteWeatherData 或 HtcWeatherData
+ */
+export interface WeatherData {
+  code?: string;
+  location?: CityInfo[];
+  now: CurrentWeather;
+  forecast?: {
+    daily: DailyForecast[];
+    updateTime: string;
+  };
+  daily?: DailyForecast[];
+  hourly?: {
+    hourly: HourlyForecast[];
+    updateTime: string;
+  };
+  indices?: {
+    daily: WeatherIndex[];
+    updateTime: string;
+  };
+  city: CityInfo;
+  advertisement?: {
+    cfFlag?: string;
+    skFlag?: string;
+    zuFlag?: string;
+  };
+  updateTime?: string;
+}
+
+// ============================================
+// 缓存相关类型
+// ============================================
+
+export interface CachedWeatherData {
+  id: string;
+  cityId: string;
+  dataType: string;
+  appType: string;
+  xmlData: string;
+  createdAt: Date;
+  expiresAt: Date;
+  cacheDuration: number;
+}
+
+export interface CachePolicy {
+  dataType: string;
+  appType: string;
+  duration: number;
+  description?: string;
+}

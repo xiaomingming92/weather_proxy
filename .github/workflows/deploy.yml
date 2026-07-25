@@ -44,6 +44,7 @@ jobs:
             npx prisma migrate deploy
             npx prisma generate
             npm run build || exit 1
+            npm prune --production
             APP_NAME="${{ secrets.SERVER_PM2_NAME }}"
             ENTRY_FILE="dist/server.js"
 

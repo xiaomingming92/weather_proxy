@@ -4,7 +4,10 @@ import weatherRouter from './routes/weather.js';
 import configRouter from './routes/config.js';
 import cronService from './services/cron-service.js';
 
-console.log('weatherRouter imported successfully');
+// DeviceRegistry 自动注册路由（替代手动 app.use）
+import { deviceRegistry } from './services/device-registry.js';
+// 导入设备配置触发注册（副作用：deviceRegistry.register()）
+import './config/devices.js';
 
 const app = express();
 
@@ -18,9 +21,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// 路由
-app.use('/api/weather', weatherRouter);
-app.use('/api/config', configRouter);
+// 路由 — DeviceRegistry 自动挂载（替代手动 app.use）
+app.use('/api/weather', weatherRouter); // WeatherWidget_Mod.apk
+deviceRegistry.applyRoutes(app);
+app.use('/api/config', configRouter); // 配置接口
 
 // 错误处理中间件
 app.use((err: any, req: any, res: any, next: any) => {

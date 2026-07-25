@@ -5,10 +5,16 @@ node_modules
 .env.prod
 .env.dev.local
 .env.prod.local
+.env.development
 /src/generated/prisma
+/src/generated/add-prisma
+/data/
 # package-lock.json // 使用npm cli
 dist/
 logs/
 .vscode/
 .idea/
+# IDE runtime configs with credentials
+.qoder/mcp.json
+.claude/mcp.json
 ed25519-private.pem

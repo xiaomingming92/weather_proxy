@@ -13,6 +13,258 @@ datasource db {
   provider = "mysql"
 }
 
+// ============================================
+// ZTE 城市表（独立）
+// ============================================
+model ZteCity {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  cityId    String   @unique  // 和风 API 城市 ID
+  
+  // 站点信息（WeatherTV 需要）
+  stationId   String?
+  longitude   String?
+  latitude    String?
+  postcode    String?
+  
+  // 时间信息
+  sunrise     String?
+  sunset      String?
+  
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// ZTE 活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model ZteActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
+}
+
+// ============================================
+// HTC AccuWeather 活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model HtcAccuActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
+}
+
+// ============================================
+// HTC 华风天气活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model HtcHuaFengActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
+}
+
+// ============================================
+// HTC G13 活跃城市表（用户真实请求的城市，用于天气同步）
+// ============================================
+model HtcG13ActiveCity {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  cityId      String   @unique  // 和风天气城市 ID
+  longitude   String?
+  latitude    String?
+  lastRequestAt BigInt?  // 最后一次请求时间
+  requestCount Int      @default(1)  // 请求次数
+  createdAt   BigInt
+  updatedAt   BigInt
+
+  @@index([lastRequestAt])
+  @@index([requestCount])
+}
+
+// ============================================
+// HTC AccuWeather 城市表（国际版）
+// ============================================
+model HtcAccuCity {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  cityId    String   @unique  // 和风API城市ID
+  
+  // 地理位置信息
+  latitude    String?
+  longitude   String?
+  country     String?   // 国家
+  state       String?   // 省份/州
+  
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// ZTE 缓存表（独立）
+// ============================================
+model ZteWeatherCache {
+  id            Int      @id @default(autoincrement())
+  cityId        String
+  dataType      String   // ztewidgetsk, ztewidgetcf, ztev3widgetskall, ztev3widgetcfall, zte, allcity
+  xmlData       String   @db.Text
+  timestamp     BigInt
+  expiresAt     BigInt
+  cacheDuration Int      @default(30)
+  createdAt     BigInt
+  updatedAt     BigInt
+  
+  @@unique([cityId, dataType])
+  @@index([expiresAt])
+  @@index([dataType])
+}
+
+// ============================================
+// HTC AccuWeather 缓存表（国际版）
+// ============================================
+model HtcAccuWeatherCache {
+  id            Int      @id @default(autoincrement())
+  cityId        String
+  endpoint      String   // forecast-data_v3, city-find, lat-lon-search, weather-data
+  xmlData       String   @db.Text
+  timestamp     BigInt
+  expiresAt     BigInt
+  cacheDuration Int      @default(30)
+  createdAt     BigInt
+  updatedAt     BigInt
+  
+  @@unique([cityId, endpoint])
+  @@index([expiresAt])
+  @@index([endpoint])
+}
+
+// ============================================
+// ZTE 缓存策略配置
+// ============================================
+model ZteCachePolicy {
+  id          Int      @id @default(autoincrement())
+  dataType    String   @unique
+  duration    Int      // 缓存时长（分钟）
+  description String?
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// HTC AccuWeather 缓存策略配置（国际版）
+// ============================================
+model HtcAccuCachePolicy {
+  id          Int      @id @default(autoincrement())
+  endpoint    String   @unique
+  duration    Int      // 缓存时长（分钟）
+  description String?
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// HTC华风天气（国行HTC）缓存表
+// ============================================
+model HTCHuaFengWeatherCache {
+  id            Int      @id @default(autoincrement())
+  cityCode      String   // 华风城市代码（如：01011712）
+  xmlData       String   @db.Text
+  timestamp     BigInt
+  expiresAt     BigInt
+  cacheDuration Int      @default(30)
+  createdAt     BigInt
+  updatedAt     BigInt
+
+  @@unique([cityCode])
+  @@index([expiresAt])
+}
+
+// ============================================
+// HTC华风天气城市表（国行HTC专用）
+// ============================================
+model HTCHuaFengCity {
+  id          Int      @id @default(autoincrement())
+  cityCode    String   @unique  // 华风城市代码（如：01011712）
+  name        String   // 城市名称
+  qweatherId  String?  // 对应和风天气城市ID
+  latitude    String?
+  longitude   String?
+  province    String?  // 省份
+  country     String?  @default("中国")
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// HTC华风天气缓存策略配置（国行HTC专用）
+// ============================================
+model HtcHuaFengCachePolicy {
+  id          Int      @id @default(autoincrement())
+  dataType    String   @unique  // CF, SK 等
+  duration    Int      // 缓存时长（分钟）
+  description String?
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// HTC G13 新天气 App 缓存表
+// ============================================
+model HtcG13WeatherCache {
+  id            Int      @id @default(autoincrement())
+  cityId        String   @unique  // 和风天气城市ID
+  jsonData      String   @db.Text  // JSON格式天气数据
+  timestamp     BigInt
+  expiresAt     BigInt
+  cacheDuration Int      @default(30)
+  createdAt     BigInt
+  updatedAt     BigInt
+
+  @@index([expiresAt])
+}
+
+// ============================================
+// HTC G13 新天气 App 城市表
+// ============================================
+model HtcG13City {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique  // 城市名称
+  cityId      String   @unique  // 和风天气城市ID
+  latitude    String?
+  longitude   String?
+  adm1        String?  // 所属省份
+  createdAt   BigInt
+  updatedAt   BigInt
+}
+
+// ============================================
+// 旧表（保留用于数据迁移，后续删除）
+// ============================================
 model City {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -33,6 +285,9 @@ model City {
   weatherData WeatherData[]
 }
 
+// ============================================
+// 旧表（保留用于数据迁移，后续删除）
+// ============================================
 model WeatherData {
   id           Int      @id @default(autoincrement())
   cityId       String
@@ -49,12 +304,14 @@ model WeatherData {
   // 外键关联
   city         City?    @relation(fields: [cityId], references: [cityId])
   
-  // 复合唯一索引
   @@unique([cityId, dataType, appType])
   @@index([expiresAt])
   @@index([appType, dataType])
 }
 
+// ============================================
+// 旧表（保留用于兼容，后续迁移到 ZteCachePolicy/HtcCachePolicy）
+// ============================================
 model CachePolicy {
   id          Int      @id @default(autoincrement())
   dataType    String
@@ -67,6 +324,9 @@ model CachePolicy {
   @@unique([dataType, appType])
 }
 
+// ============================================
+// 通用配置表
+// ============================================
 model CacheConfig {
   id               Int      @id @default(autoincrement())
   key              String   @unique

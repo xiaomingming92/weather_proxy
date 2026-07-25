@@ -19,20 +19,33 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "clear-cache": "tsx scripts/clear-cache.ts"
+    "clear-cache": "tsx scripts/clear-cache.ts",
+    "generate": "tsx src/caijuehub/transcribe.ts",
+    "generate:devices": "tsx src/caijuehub/transcribe.ts",
+    "device:new": "tsx scripts/scaffold-device.ts",
+    "podman-add-coder-up": "podman-compose --env-file .env.development -f podman-compose.add.yml up -d",
+    "podman-add-coder-down": "podman-compose --env-file .env.development -f podman-compose.add.yml down"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/server": "2.0.0-beta.5",
+    "@prisma/adapter-libsql": "^7.9.0",
     "@prisma/adapter-mariadb": "^7.3.0",
+    "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.3.0",
+    "add-coder": "link:../../ai/add-coder",
     "axios": "^1.6.2",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "iconv-lite": "^0.7.2",
     "jose": "^6.1.3",
     "mariadb": "^3.4.5",
     "node-cache": "^5.1.2",
     "node-cron": "^4.2.1",
+    "pinyin-pro": "^3.28.0",
     "prisma": "^7.3.0",
-    "xmlbuilder2": "^3.0.2"
+    "xmlbuilder2": "^3.0.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^20.4.1",
@@ -41,6 +54,7 @@
     "@types/node": "^20.10.0",
     "@types/node-cron": "^3.0.11",
     "@types/node-jose": "^1.1.13",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "@vitest/coverage-v8": "^4.0.18",
@@ -51,6 +65,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
+    "supertest": "^7.2.2",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.6.0",
     "typescript": "^5.3.3",
@@ -64,5 +79,8 @@
       "eslint --fix",
       "prettier --write"
     ]
+  },
+  "volta": {
+    "node": "24.11.0"
   }
 }

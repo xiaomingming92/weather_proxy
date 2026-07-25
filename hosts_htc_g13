@@ -1,0 +1,28 @@
+# HTC G13 (Wildfire S) 天气服务 hosts 劫持配置
+# 将所有天气相关域名指向代理服务器
+# 使用方法: 将此文件内容追加到 /system/etc/hosts
+
+# ============================================
+# 代理服务器 IP (请根据实际情况修改)
+# ============================================
+192.168.1.100 htc-mobile.mywtv.cn
+192.168.1.100 3g.mywtv.cn
+192.168.1.100 htc.accuweather.com
+192.168.1.100 htc2.accu-weather.com
+192.168.1.100 www.accuweather.com
+192.168.1.100 wcr.htcsense.com
+192.168.1.100 ec2-122-248-192-161.ap-southeast-1.compute.amazonaws.com
+
+# ============================================
+# 说明
+# ============================================
+# htc-mobile.mywtv.cn     - 华风天气数据接口 (国行版)
+# 3g.mywtv.cn             - 华风天气详情页
+# htc.accuweather.com     - AccuWeather 天气预报/经纬度搜索
+# htc2.accu-weather.com   - AccuWeather 城市搜索/天气数据
+# www.accuweather.com     - AccuWeather 详情页/收藏
+# wcr.htcsense.com        - WCR 配置服务 (测试环境)
+# ec2-...amazonaws.com    - WCR 配置服务 (生产环境)
+#
+# 注意: 请确保代理服务器 192.168.1.100 可访问
+#       如果代理服务器 IP 不同，请修改上面的 IP 地址

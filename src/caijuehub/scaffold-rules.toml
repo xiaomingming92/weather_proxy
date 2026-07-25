@@ -1,0 +1,99 @@
+# Prisma 模型模板 — 集中裁决层唯一直相源
+#
+# 定义不同设备协议的 Prisma model 生成模板。
+# scripts/scaffold-device.ts --template <name> 按模板输出 model。
+#
+# 模板支持继承：通过 inherits = "parent" 复用父模板的通用字段，
+# 子模板只需覆写差异部分。
+
+# ============================================
+# 默认模板：cityId + dataType + xmlData（ZTE / Accu 模式）
+# ============================================
+[template.default]
+description = "默认：cityId + dataType + xmlData（ZTE / Accu 模式）"
+tables = ["WeatherCache", "ActiveCity", "City", "CachePolicy"]
+
+# --- 通用字段（所有表共享） ---
+[template.default.fields]
+id = "Int      @id @default(autoincrement())"
+timestamp = "BigInt"
+expiresAt = "BigInt"
+cacheDuration = "Int      @default(30)"
+createdAt = "BigInt"
+updatedAt = "BigInt"
+
+# --- WeatherCache ---
+[template.default.tables.WeatherCache]
+extra = """
+  cityId        String
+  dataType      String   // 天气数据类型标识
+  xmlData       String   @db.Text
+"""
+unique = [["cityId", "dataType"]]
+indexes = ["expiresAt", "dataType"]
+
+# --- ActiveCity ---
+[template.default.tables.ActiveCity]
+extra = """
+  name          String
+  cityId        String   @unique
+  lastAccessed  BigInt
+"""
+indexes = ["name", "lastAccessed"]
+
+# --- City ---
+[template.default.tables.City]
+extra = """
+  name          String   @unique
+  cityId        String   @unique
+"""
+# TODO: 根据设备协议添加额外字段（latitude/longitude/province/stationId 等）
+
+# --- CachePolicy ---
+[template.default.tables.CachePolicy]
+extra = """
+  dataType      String   @unique
+  duration      Int      // 缓存时长（分钟）
+  description   String?
+"""
+
+# ============================================
+# HTC G13 模板：cityId @unique + jsonData，无 CachePolicy
+# ============================================
+[template."htc-g13"]
+description = "G13：jsonData 替代 xmlData，cityId @unique，无 CachePolicy"
+tables = ["WeatherCache", "ActiveCity", "City"]
+inherits = "default"
+
+[template."htc-g13".tables.WeatherCache]
+extra = """
+  cityId        String   @unique
+  jsonData      String   @db.Text  // JSON 格式天气数据
+"""
+unique = [["cityId"]]
+indexes = ["expiresAt"]
+
+# ============================================
+# HTC 华风模板：cityCode 替代 cityId，无 dataType 维度
+# ============================================
+[template."htc-huafeng"]
+description = "华风：cityCode 替代 cityId，无 dataType 维度"
+tables = ["WeatherCache", "ActiveCity", "City", "CachePolicy"]
+inherits = "default"
+
+[template."htc-huafeng".tables.WeatherCache]
+extra = """
+  cityCode      String   // 华风城市代码（如：01011712）
+  xmlData       String   @db.Text
+"""
+unique = [["cityCode"]]
+indexes = ["expiresAt"]
+
+[template."htc-huafeng".tables.City]
+extra = """
+  cityCode      String   @unique  // 华风城市代码
+  name          String   // 城市名称
+  qweatherId    String?  // 对应和风天气城市ID
+  province      String?  // 省份
+  country       String?  @default("中国")
+"""

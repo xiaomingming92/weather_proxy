@@ -1,0 +1,24 @@
+# ============================================================
+# weather_proxy 集中裁决层 (Caijue Hub) — 策略索引
+# ============================================================
+# 参考 add-coder caijuehub 范式：
+#   每条 [[caijue]] 注册一个裁决入口，指向规则文件 + 策略实现。
+#   转录音机 transcribe.ts 读取此索引，根据规则 TOML 产出 GENERATED 区块，
+#   手写 USER CODE 消费规则数据。
+#
+# 修改流程：编辑 *-rules.toml → npm run generate:devices → 策略生效
+# ============================================================
+
+[[caijue]]
+id = "devices-registry"
+type = "strategy"
+description = "设备注册表：DeviceType / DeviceDefinition → devices.ts 自动生成"
+rules = "devices-rules.toml"
+implementation = "strategies/devices.strategy.ts"
+
+[[caijue]]
+id = "scaffold-templates"
+type = "strategy"
+description = "Prisma 模型模板：default / htc-g13 / htc-huafeng 三模板继承"
+rules = "scaffold-rules.toml"
+implementation = "strategies/scaffold.strategy.ts"

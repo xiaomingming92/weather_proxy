@@ -1,0 +1,6 @@
+allowBuilds:
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+overrides:
+  add-coder: link:../../ai/add-coder
