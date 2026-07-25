@@ -17,7 +17,7 @@ import { htcAccuCache } from '@/services/cache/index.js';
 import { HTCAccuWeatherData } from '@/services/htc/htc-accu-types.js';
 import { WeatherData } from '@/types/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 const htcAccuDataTransform = new HTCAccuDataTransform();
 
 /**

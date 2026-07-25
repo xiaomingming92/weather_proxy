@@ -17,7 +17,7 @@ import { config } from '@/config/index.js';
 import iconv from 'iconv-lite';
 import { buildNestedCityListXml } from '@/services/zte/citylist-xml-builder.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // ============================================
 // 城市列表数据（静态缓存，避免频繁加载）

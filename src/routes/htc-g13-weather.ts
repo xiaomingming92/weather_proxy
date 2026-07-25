@@ -19,7 +19,7 @@ import {
 } from '@/types/htc-g13.js';
 import { WeatherData, DailyForecast, HourlyForecast } from '@/types/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // ============================================
 // 工具函数

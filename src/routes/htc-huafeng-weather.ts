@@ -15,7 +15,7 @@ import {
 } from '@/services/htc/htc-huafeng-types.js';
 import { htcHuaFengCache } from '@/services/cache/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 强制刷新追踪器：记录每个设备（IP+城市）的点击时间
 // key格式: "ip:cityCode"

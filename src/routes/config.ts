@@ -2,7 +2,7 @@ import express from 'express';
 import prismaCache from '@/services/prisma-cache.js';
 import { htcHuaFengCache } from '@/services/cache/index.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 获取所有缓存配置
 router.get('/cache', async (req, res) => {

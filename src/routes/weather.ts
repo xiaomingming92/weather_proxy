@@ -15,7 +15,7 @@ import activeCityService from '@/services/zte/active-city-service.js';
 import { DataType, AppType } from '@/types/index.js';
 import type { ZteWeatherData } from '@/types/zte.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // 处理天气请求的共用函数
 async function handleWeatherRequest(
