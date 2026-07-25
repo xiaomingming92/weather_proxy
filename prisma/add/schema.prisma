@@ -1,0 +1,71 @@
+// ============================================
+// ADD 流程数据库 (PostgreSQL)
+// 独立 schema，与 Weather 业务完全解耦
+// ============================================
+
+generator add_client {
+  provider = "prisma-client"
+  output   = "../../src/generated/add-prisma"
+}
+
+datasource add_db {
+  provider = "postgresql"
+}
+
+// ============================================
+// ADD 系统用户
+// ============================================
+model AddUser {
+  id        String   @id
+  username  String   @unique
+  email     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  devOperations DevOperation[]
+  auditLogs     AuditLog[]
+}
+
+// ============================================
+// 开发操作审计日志
+// ============================================
+model DevOperation {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  planKeyword String   @default("unknown")
+  action      String
+  targetType  String
+  targetId    String   @default("unknown")
+  beforeState Json?
+  afterState  Json?
+  reason      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user AddUser @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([planKeyword])
+  @@index([targetType])
+}
+
+// ============================================
+// 通用审计日志
+// ============================================
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  action     String
+  targetType String
+  targetId   String
+  traceId    String?
+  afterState Json
+  reason     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user AddUser @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([traceId])
+}
