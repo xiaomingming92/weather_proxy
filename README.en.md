@@ -18,7 +18,9 @@ The hardware on these devices is perfectly fine — only their software services
 - 🕐 **Sync the clock** — pairs with the [timeSync](https://github.com/xiaomingming92/timeSync) NTP-over-HTTP service, so the classic "old device can't keep time" problem is solved too
 - 🔧 **Centralized Adjudication Layer (Caijuehub)** — device configuration upgraded from hard-coded TypeScript to declarative TOML rules; adding a new device model takes just ~10 lines of config
 
-This project is for technical discussion only. No legal discussion, no commercial use.
+### Legal & Compliance
+
+This is a personal technical-research and digital-preservation effort on **hardware the author owns**. It is **strictly non-commercial** and provides no paid or hosted service. The reverse-engineering involved serves device interoperability research only; weather data comes from each user's **own QWeather API key** — nothing is scraped from or resold on behalf of upstream services. The modified APKs in this repo are for **debugging and interoperability research only** — do not use them for commercial distribution or anything that infringes third-party rights. Users are responsible for their own conduct and for compliance with the laws of their jurisdiction.
 
 ---
 
