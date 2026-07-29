@@ -146,6 +146,10 @@ weather_proxy/
 - 🟢 **中兴 V880（Blade / 刀锋）** → [Weather is BACK on the ZTE Blade in 2026](https://xdaforums.com/t/app-mod-weather-is-back-on-the-zte-blade-in-2026-open-source-proxy-modded-stock-widgets-guide-reviving-the-zte-blades-weather-widget-15-year.4796456/)
 - 🔵 **HTC G13（Wildfire S / 野火 S）** → [Bring back live Weather on the Wildfire S](https://xdaforums.com/t/guide-open-source-bring-back-live-weather-on-the-wildfire-s-htc-servers-died-dec-2025-so-i-built-my-own-mod-weather-proxy-reviving-htc-sense.4796455/)
 
+---
+
+- 酷安关联帖子: https://www.coolapk.com/feed/72988056?s=YTY4MWY4ODkyNWQ5MzBnNmE2OTZjZDB6a1651
+- 
 ## 联系方式
 
 - 项目维护者：[xiaomingming92](https://github.com/xiaomingming92)
