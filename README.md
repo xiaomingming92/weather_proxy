@@ -137,6 +137,13 @@ weather_proxy/
 └── tests/                     ← Vitest 测试
 ```
 
+## 社区讨论
+
+项目已在 XDA 论坛发帖，欢迎搞机同好交流、反馈、晒复活成果：
+
+- 🟢 **中兴 V880（Blade / 刀锋）** → [Weather is BACK on the ZTE Blade in 2026](https://xdaforums.com/t/app-mod-weather-is-back-on-the-zte-blade-in-2026-open-source-proxy-modded-stock-widgets-guide-reviving-the-zte-blades-weather-widget-15-year.4796456/)
+- 🔵 **HTC G13（Wildfire S / 野火 S）** → [Bring back live Weather on the Wildfire S](https://xdaforums.com/t/guide-open-source-bring-back-live-weather-on-the-wildfire-s-htc-servers-died-dec-2025-so-i-built-my-own-mod-weather-proxy-reviving-htc-sense.4796455/)
+
 ## 联系方式
 
 - 项目维护者：[xiaomingming92](https://github.com/xiaomingming92)
