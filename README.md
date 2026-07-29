@@ -24,13 +24,18 @@
 
 ## 📹 真机演示
 
-> 🚧 真机视频即将上传，敬请期待。
+** htc_weather
+https://github.com/user-attachments/assets/cab7f18e-c93e-4398-abfc-662df776b788
 
-<!--
-  GitHub 网页编辑此处：把 mp4 直接拖拽进编辑框，
-  生成的 user-attachments 链接单独占一行粘贴在下方，即可渲染为内嵌播放器。
--->
-<!-- DEMO_VIDEO_PLACEHOLDER -->
+---
+
+** htc_timeSync
+https://github.com/user-attachments/assets/e649d5bc-6608-4992-9855-541dc99ef1a1
+
+---
+
+zte_weather
+<img width="800" height="1876" alt="zte_v880_weather" src="https://github.com/user-attachments/assets/93693aac-c229-4d12-933f-2fe8bee2724f" />
 
 ---
 
