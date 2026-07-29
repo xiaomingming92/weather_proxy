@@ -43,6 +43,29 @@ zte_weather
 
 > 架构设计、集中裁决层、14 端点清单、适配指南、ADD范式中人机协作部分演进证据链 → [docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md](docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md)
 
+### 🔬 逆向工程文档精选
+
+搞机的都懂——成品不如过程硬。`docs/` 下沉淀了完整的逆向记录：
+
+**HTC G13（野火 S）**
+
+- [ROM 二进制分析方法](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/04_HTC_ROM二进制分析方法.md) — 从 ROM 里定位并解码原版 AccuWeather 端点
+- [AccuWeather API 分析与适配背景](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/01_AccuWeather_API分析与适配背景.md) + [天气代码对照表](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/03_AccuWeather天气代码对照表.md) — 逆向得到的天气代码映射
+- [全量接口劫持方案](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/06_第二阶段-全量接口劫持方案.md) — 14 端点全量劫持，含请求/响应协议解剖
+- [HTC 天气原版接口适配分析](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/07-HTC天气原版接口适配分析.md) — 原版协议逐字段拆解
+
+**ZTE V880（Blade / 刀锋）**
+
+- [WeatherTV XML 解析组件分析](docs/weather-proxy/knowledge/00-需求/设备适配/ZTE_V880/03_WeatherTV_XML解析组件分析.md) + [WeatherWidget 数据流转分析](docs/weather-proxy/knowledge/00-需求/设备适配/ZTE_V880/04_WeatherWidget数据流转分析.md) — 组件级逆向
+- [WeatherWidget 副作用：偷改系统时间](docs/weather-proxy/knowledge/00-需求/设备适配/ZTE_V880/old/weatherWidget副作用-修改系统时间.md) — 逆向时发现原厂 widget 会静默修改系统时钟，这也是配套 timeSync 项目存在的原因
+
+**通用**
+
+- ADB 调试指南（[以 WeatherWidget 为例](docs/weather-proxy/knowledge/02-规范/调试/adb/ADB调试指南-WeatherWidget为例.md) / [自开发 APK 安装](docs/weather-proxy/knowledge/02-规范/调试/adb/ADB安装自开发APK完整指南.md)）
+- [2011 年天气 API 供应商考古](docs/weather-proxy/knowledge/00-需求/API调研/2011和风和AccuWeather.md) — 还原当年 QWeather / AccuWeather 的接口形态
+
+> 🗄️ **更早的痕迹**：`.trae/` 是本项目 Trae IDE 时期的历史回溯存档——里面留着最初的规格三元组（`specs/`：事件驱动架构、ZTE 城市列表接口、VPS 数据库备份恢复等）、按设备与主题归档的过程文档（`documents/`）以及当时的开发规则（`rules/`）。它们不是当前规范，而是这套方案从零到一的演进证据，供想深挖来龙去脉的人翻阅。
+
 ---
 
 ## 技术栈

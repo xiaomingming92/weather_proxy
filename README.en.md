@@ -43,6 +43,29 @@ zte_weather
 
 > Architecture design, the Centralized Adjudication Layer, the 14-endpoint list, the porting guide, and the ADD-paradigm human-AI collaboration evidence chain → [docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md](docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md) (Chinese)
 
+### 🔬 Reverse-Engineering Notes
+
+If you tinker with old phones, you know the process matters more than the result. The full RE trail lives under `docs/` (in Chinese — but hex dumps, endpoint tables and weather-code mappings are language-agnostic):
+
+**HTC G13 (Wildfire S)**
+
+- [ROM binary analysis](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/04_HTC_ROM二进制分析方法.md) — locating and decoding the original AccuWeather endpoints from the ROM
+- [AccuWeather API analysis](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/01_AccuWeather_API分析与适配背景.md) + [weather-code mapping table](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/03_AccuWeather天气代码对照表.md) — reverse-engineered code mappings
+- [Full 14-endpoint hijacking plan](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/06_第二阶段-全量接口劫持方案.md) — with request/response protocol dissection
+- [Stock HTC weather protocol analysis](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/07-HTC天气原版接口适配分析.md) — field-by-field teardown
+
+**ZTE V880 (Blade)**
+
+- [WeatherTV XML parser analysis](docs/weather-proxy/knowledge/00-需求/设备适配/ZTE_V880/03_WeatherTV_XML解析组件分析.md) + [WeatherWidget data-flow analysis](docs/weather-proxy/knowledge/00-需求/设备适配/ZTE_V880/04_WeatherWidget数据流转分析.md) — component-level RE
+- [WeatherWidget side effect: silently changes the system clock](docs/weather-proxy/knowledge/00-需求/设备适配/ZTE_V880/old/weatherWidget副作用-修改系统时间.md) — the stock widget quietly rewrites the system time; this is exactly why the companion timeSync project exists
+
+**General**
+
+- ADB debugging guides ([WeatherWidget walkthrough](docs/weather-proxy/knowledge/02-规范/调试/adb/ADB调试指南-WeatherWidget为例.md) / [installing self-built APKs](docs/weather-proxy/knowledge/02-规范/调试/adb/ADB安装自开发APK完整指南.md))
+- [2011 weather-API vendor archaeology](docs/weather-proxy/knowledge/00-需求/API调研/2011和风和AccuWeather.md) — reconstructing how QWeather / AccuWeather looked back then
+
+> 🗄️ **Older traces**: `.trae/` is the project's historical archive from its Trae IDE era — it keeps the original spec triplets (`specs/`: event-driven architecture, the ZTE city-list API, VPS DB backup/restore, and more), process docs filed by device and topic (`documents/`), and the development rules of that time (`rules/`). These aren't the current spec — they're the evidence trail of how this solution grew from zero, kept around for anyone who wants to dig into the backstory.
+
 ---
 
 ## Tech Stack
