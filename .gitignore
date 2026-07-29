@@ -18,3 +18,5 @@ logs/
 .qoder/mcp.json
 .claude/mcp.json
 ed25519-private.pem
+# Modified OEM APKs — withheld from public distribution pending copyright-holder permission
+/APK/
