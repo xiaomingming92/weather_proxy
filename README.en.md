@@ -24,14 +24,18 @@ This project is for technical discussion only. No legal discussion, no commercia
 
 ## 📹 Live Demo
 
-> 🚧 Real-device demo video coming soon — stay tuned.
+** htc_weather
+https://github.com/user-attachments/assets/cab7f18e-c93e-4398-abfc-662df776b788
 
-<!--
-  Edit on GitHub web: drag & drop the mp4 into the editor,
-  then paste the generated user-attachments URL on its own line below
-  to render an embedded player.
--->
-<!-- DEMO_VIDEO_PLACEHOLDER -->
+---
+
+** htc_timeSync
+https://github.com/user-attachments/assets/e649d5bc-6608-4992-9855-541dc99ef1a1
+
+---
+
+zte_weather
+<img width="800" height="1876" alt="zte_v880_weather" src="https://github.com/user-attachments/assets/93693aac-c229-4d12-933f-2fe8bee2724f" />
 
 ---
 
