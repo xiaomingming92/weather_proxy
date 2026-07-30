@@ -49,6 +49,9 @@ zte_weather
 
 搞机的都懂——成品不如过程硬。`docs/` 下沉淀了完整的逆向记录：
 
+既然原汁原味就干脆thinkpad x201 上Ubuntu10.04 
+<img width="720" alt="x201" src="https://github.com/user-attachments/assets/95689e55-01ef-4a75-9342-4be131f1135e" />
+
 **HTC G13（野火 S）**
 
 - [ROM 二进制分析方法](docs/weather-proxy/knowledge/00-需求/设备适配/HTC_G13/04_HTC_ROM二进制分析方法.md) — 从 ROM 里定位并解码原版 AccuWeather 端点
