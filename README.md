@@ -37,7 +37,7 @@ https://github.com/user-attachments/assets/e649d5bc-6608-4992-9855-541dc99ef1a1
 ---
 
 zte_weather
-<img width="800" height="1876" alt="zte_v880_weather" src="https://github.com/user-attachments/assets/93693aac-c229-4d12-933f-2fe8bee2724f" />
+<img width="400" alt="zte_v880_weather" src="https://github.com/user-attachments/assets/93693aac-c229-4d12-933f-2fe8bee2724f" />
 
 ---
 
