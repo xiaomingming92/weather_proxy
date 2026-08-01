@@ -7,12 +7,28 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 // 多路径回退：PROJECT_ROOT 可能因 cwd/沙箱环境算错
+// 双库项目（add.prisma=postgres + 业务 schema=mysql）时 add-prisma 客户端必须前置，
+// 否则会加载业务库 mysql client，与 DATABASE_URL 的 adapter-pg 冲突；单库项目无 add-prisma 时自然回退 prisma
 const candidates = [
+  join(PROJECT_ROOT, 'src/generated/add-prisma/client.ts'),
+  join(PROJECT_ROOT, 'src/generated/add-prisma/client.js'),
   join(PROJECT_ROOT, 'src/generated/prisma/client.ts'),
   join(PROJECT_ROOT, 'src/generated/prisma/client.js'),
+  join(process.cwd(), 'src/generated/add-prisma/client.ts'),
+  join(process.cwd(), 'src/generated/add-prisma/client.js'),
   join(process.cwd(), 'src/generated/prisma/client.ts'),
   join(process.cwd(), 'src/generated/prisma/client.js'),
   // 从当前文件位置反推：shared/prisma.ts → 上 4 层到项目根
+  (() => {
+    const d = dirname(fileURLToPath(import.meta.url));
+    const root = pathResolve(d, '..', '..', '..', '..');
+    return join(root, 'src/generated/add-prisma/client.ts');
+  })(),
+  (() => {
+    const d = dirname(fileURLToPath(import.meta.url));
+    const root = pathResolve(d, '..', '..', '..', '..');
+    return join(root, 'src/generated/add-prisma/client.js');
+  })(),
   (() => {
     const d = dirname(fileURLToPath(import.meta.url));
     const root = pathResolve(d, '..', '..', '..', '..');
