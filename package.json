@@ -44,6 +44,7 @@
     "node-cron": "^4.2.1",
     "pinyin-pro": "^3.28.0",
     "prisma": "^7.3.0",
+    "vector-cosine-similarity": "^1.8.0",
     "xmlbuilder2": "^3.0.2",
     "zod": "^4.4.3"
   },
