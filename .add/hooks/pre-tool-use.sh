@@ -132,7 +132,7 @@ fi
 #   3. Dev Action 标记 → 用于 Stop 检查
 # 注意: 不再对 src/**/*.ts 做 Plan 白名单放行，避免绕过 skill/rules 规定的 HITL。
 tool_name=$(echo "$input" | jq -r '.tool_name // empty')
-if [ "$tool_name" = "Write" ] || [ "$tool_name" = "Edit" ]; then
+if [ "$tool_name" = "Write" ] || [ "$tool_name" = "Edit" ] || [ "$tool_name" = "SearchReplace" ]; then
   file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
   [ -z "$file_path" ] && exit 0
 
@@ -152,6 +152,56 @@ if [ "$tool_name" = "Write" ] || [ "$tool_name" = "Edit" ]; then
     echo "⛔ 敏感文件受保护，禁止写入: $file_path" >&2
     echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"敏感文件受保护\"}}"
     exit 2
+  fi
+
+  # §C: 模板类型前置注入 — plans/ 写入前提示应选模板
+  if echo "$file_path" | grep -qE '\.(qoder|claude|add|vscode|trae)/(plans)/'; then
+    fname=$(basename "$file_path")
+    if echo "$fname" | grep -qE 'plan-v[0-9]'; then
+      echo "💡 [ADD PreToolUse] 写入 Plan → 模板: standard-plan-template.md（标准）或 simple-plan-template.md（≤3文件）" >&2
+    elif echo "$fname" | grep -qE 'add-route'; then
+      echo "💡 [ADD PreToolUse] 写入 ADD Route → 模板: add-route-template.md" >&2
+    elif echo "$fname" | grep -qE 'handoff'; then
+      echo "💡 [ADD PreToolUse] 写入 Handoff → 模板: handoff-single-round-template.md（单轮）或 handoff-multi-round-template.md（多轮）" >&2
+    fi
+    # Write 大文件适配 — 已存在大文件建议用 SearchReplace 分块
+    if echo "$tool_name" | grep -qE 'Write' && [ -f "$file_path" ]; then
+      fsize=$(wc -c < "$file_path" 2>/dev/null || echo "0")
+      if [ "$fsize" -gt 2000 ] 2>/dev/null; then
+        echo "⚠️ [ADD PreToolUse] 文件已有 ${fsize} 字节，Write 全量覆盖可能触发工具 payload 限制。建议用 SearchReplace 分块追加。" >&2
+      fi
+    fi
+  fi
+
+  # §C: HITL tongyi 检查 — plans/ + PLAN_REVIEW reviews/ 写入前必须有 .hitl-tongyi-{planName} 哨兵
+  # implementation/runtime review 不需要 HITL，走 §B 活跃 Plan 检查
+  if echo "$file_path" | grep -qE '\.(qoder|claude|add|vscode|trae)/(plans)/'; then
+    _do_hitl=true
+  elif echo "$file_path" | grep -qE '\.(qoder|claude|add|vscode|trae)/(reviews)/'; then
+    if echo "$file_path" | grep -qE '-(implementation|runtime)'; then
+      _do_hitl=false  # implementation/runtime review 不被 HITL 拦截
+    else
+      _do_hitl=true   # PLAN_REVIEW 需要 HITL
+    fi
+  else
+    _do_hitl=false
+  fi
+
+  if [ "$_do_hitl" = true ]; then
+    _relative=$(echo "$file_path" | sed 's|.*/\.\(qoder\|claude\|add\|vscode\|trae\)/\(plans\|reviews\)/||')
+    _planName=$(basename "$_relative" .md | sed 's/\.hitl$//;s/-plan-v[0-9]*$//;s/-add-route-v[0-9]*$//;s/-review-v[0-9]*$//;s/-review-implementation$//;s/-review-runtime$//')
+    if [ -n "$_planName" ]; then
+      _tongyi_marker="${PROJECT_DIR}/${MAGIC_DIR}/hitl/.tongyi-${_planName}"
+      if [ ! -f "$_tongyi_marker" ]; then
+        echo "⛔ [ADD PreToolUse §C] HITL 未 tongyi: $file_path" >&2
+        echo "   原因: 哨兵文件 $_tongyi_marker 不存在" >&2
+        echo "   操作: 请先调用 create_hitl 创建审批，再 update_hitl({ status: \"TONGYI\" })" >&2
+        _reason="HITL 未 tongyi: 哨兵 ${_tongyi_marker} 不存在。请先 create_hitl → 人工 tongyi → update_hitl 后再写入"
+        echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"${_reason}\",\"additionalContext\":\"${_reason}\"}}"
+        write_hook_event "pre-tool-use" "deny" "$tool_name $file_path" "HITL 未 tongyi: $_tongyi_marker" "$PLAN_KEYWORD" "$PLAN_STATUS" 2>/dev/null || true
+        exit 0
+      fi
+    fi
   fi
 
   mark_dev_action 2>/dev/null || true
