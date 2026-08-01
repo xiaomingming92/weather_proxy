@@ -44,6 +44,8 @@ zte_weather
 ## 技术细节
 
 > 架构设计、集中裁决层、14 端点清单、适配指南、ADD范式中人机协作部分演进证据链 → [docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md](docs/weather-proxy/knowledge/02-规范/DEVELOPMENT.md)
+>
+> 数据库迁移入门（新手向）：迁移原理、双库架构、P1012/P3005 避坑、基线化流程 → [Prisma迁移管理实战指南](docs/weather-proxy/knowledge/01-架构/数据库/prisma/Prisma迁移管理实战指南.md)
 
 ### 🔬 逆向工程文档精选
 
