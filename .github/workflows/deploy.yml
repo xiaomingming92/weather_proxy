@@ -40,6 +40,7 @@ jobs:
             git pull origin main
             export HUSKY=0
             npm ci
+            rm -rf dist
             # Prisma 数据库迁移
             npx prisma migrate deploy
             npx prisma generate
