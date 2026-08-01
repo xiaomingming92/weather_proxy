@@ -8,6 +8,16 @@ node_modules
 .env.development
 /src/generated/prisma
 /src/generated/add-prisma
+# add 子项目错位生成的旧 client（正确位置：根目录 src/generated/add-prisma）
+prisma/add/src/generated/
+# 运行时调试/报告与备份残留
+.qoder/debug-dump/
+.qoder/reports/
+.add/scripts/mcp-server/tools/gateway.backup
+.qoder/scripts/mcp-server/tools/gateway.backup
+# HITL 联调测试残留
+.hitl-tongyi-weather-proxy-hitl-test
+weather-proxy-hitl-test.hitl.md
 /data/
 # package-lock.json // 使用npm cli
 dist/
