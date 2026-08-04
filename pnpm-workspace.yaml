@@ -4,5 +4,5 @@ allowBuilds:
   prisma: true
   protobufjs: true
   sharp: true
-overrides:
-  add-coder: file:../../ai/add-coder
+# overrides:
+#   add-coder: file:../../ai/add-coder
