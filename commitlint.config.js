@@ -12,6 +12,7 @@ export default {
         'refactor', // 代码重构
         'test', // 测试相关
         'chore', // 构建过程或辅助工具变动
+        'ci', // CI/CD 配置变更（workflows、部署脚本）
         'perf', // 性能优化
         'revert', // 回滚
       ],

@@ -39,6 +39,10 @@ jobs:
             cd $HOME/Sites/weather_proxy
             git pull origin main
             export HUSKY=0
+            # 按项目 .node-version（24.11.0）切换 node（volta 幂等，已装则秒过）
+            volta install node
+            # 无 GPU 服务器：跳过 onnxruntime-node 的 CUDA 二进制下载（避免走 GitHub）
+            export ONNXRUNTIME_NODE_INSTALL_CUDA=skip
             # 项目已弃用 npm，统一 pnpm（服务器 volta 环境已装 pnpm）
             pnpm install --frozen-lockfile
             rm -rf dist
