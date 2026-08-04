@@ -191,10 +191,10 @@ Error: HASH_SEED_TEXT 环境变量未设置
 
 ```
 TypeError: Cannot read properties of undefined (reading 'findUnique')
-    at PUT (/home/xmm/Sites/weather_proxy/.next/dev/server/chunks/[root-of-the-server]__0676-yj._.js:741:175)
+    at PUT (/home/xmm/ai/weather_proxy/.next/dev/server/chunks/[root-of-the-server]__0676-yj._.js:741:175)
     at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:80:14)
-    at AppRouteRouteModule.do (/home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40179)
-    at /home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:50152
+    at AppRouteRouteModule.do (/home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40179)
+    at /home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:50152
 ```
 
 - [x] Triage 结果: ✅ 已修复 — commit 3d811e8（维护模式 + 幂等闸门）。关闭时间: 2026-07-01
@@ -211,10 +211,10 @@ TypeError: Cannot read properties of undefined (reading 'findUnique')
 
 ```
 TypeError: Cannot read properties of undefined (reading 'findUnique')
-    at PUT (/home/xmm/Sites/weather_proxy/.next/dev/server/chunks/[root-of-the-server]__0676-yj._.js:741:175)
+    at PUT (/home/xmm/ai/weather_proxy/.next/dev/server/chunks/[root-of-the-server]__0676-yj._.js:741:175)
     at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:80:14)
-    at AppRouteRouteModule.do (/home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40179)
-    at /home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:50152
+    at AppRouteRouteModule.do (/home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40179)
+    at /home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:50152
 ```
 
 - [x] Triage 结果: ✅ 已修复 — commit 3d811e8（维护模式 + 幂等闸门）。关闭时间: 2026-07-01
@@ -506,8 +506,8 @@ TypeError: Cannot read properties of undefined (reading 'findUnique')
 Error: 未知 GET action: null
     at GET (webpack-internal:///(rsc)/./src/app/api/agent/[hash]/route.ts:719:100)
     at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:80:14)
-    at AppRouteRouteModule.do (/home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
-    at /home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
+    at AppRouteRouteModule.do (/home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
+    at /home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
 ```
 
 - [x] Triage 结果: 已关闭 — 测试请求 / 无效 hash 的正常拒绝行为。关闭时间: 2026-07-01
@@ -527,8 +527,8 @@ Error: 未知 GET action: null
 Error: 未知 GET action: null
     at GET (webpack-internal:///(rsc)/./src/app/api/agent/[hash]/route.ts:719:100)
     at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:80:14)
-    at AppRouteRouteModule.do (/home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
-    at /home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
+    at AppRouteRouteModule.do (/home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
+    at /home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
 ```
 
 - [x] Triage 结果: 已关闭 — 测试请求 / 无效 hash 的正常拒绝行为。关闭时间: 2026-07-01
@@ -548,8 +548,8 @@ Error: 未知 GET action: null
 Error: 未知 GET action: null
     at GET (webpack-internal:///(rsc)/./src/app/api/agent/[hash]/route.ts:719:100)
     at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:80:14)
-    at AppRouteRouteModule.do (/home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
-    at /home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
+    at AppRouteRouteModule.do (/home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
+    at /home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
 ```
 
 - [x] Triage 结果: 已关闭 — 测试请求 / 无效 hash 的正常拒绝行为。关闭时间: 2026-07-01
@@ -569,8 +569,8 @@ Error: 未知 GET action: null
 Error: 未知 GET action: null
     at GET (webpack-internal:///(rsc)/./src/app/api/agent/[hash]/route.ts:719:100)
     at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:80:14)
-    at AppRouteRouteModule.do (/home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
-    at /home/xmm/Sites/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
+    at AppRouteRouteModule.do (/home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40179)
+    at /home/xmm/ai/weather_proxy/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:50152
 ```
 
 - [x] Triage 结果: 已关闭 — 测试请求 / 无效 hash 的正常拒绝行为。关闭时间: 2026-07-01
@@ -734,8 +734,8 @@ Error: Hash 校验失败: hash=chat
 Error: 未知 POST type: null
     at POST (webpack-internal:///(rsc)/./src/app/api/agent/[hash]/route.ts:1034:100)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at async AppRouteRouteModule.do (/home/xmm/Sites/weather_proxy/node_modules/.pnpm/next@16.2.10_@babel+core@7.29.7_@playwright+test@1.61.1_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40131)
-    at async AppRouteRouteModule.handle (/home/xmm/Sites/weather_proxy/node_modules/.pnpm/next@16.2.10_@babel+core@7.29.7_@playwright+test@1.61.1_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:47411)
+    at async AppRouteRouteModule.do (/home/xmm/ai/weather_proxy/node_modules/.pnpm/next@16.2.10_@babel+core@7.29.7_@playwright+test@1.61.1_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:40131)
+    at async AppRouteRouteModule.handle (/home/xmm/ai/weather_proxy/node_modules/.pnpm/next@16.2.10_@babel+core@7.29.7_@playwright+test@1.61.1_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:47411)
 ```
 
 - [x] Triage 结果: 已关闭 — ESLint 修复 runtime 验证时的无害测试请求。关闭时间: 2026-07-03

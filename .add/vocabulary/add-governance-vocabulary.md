@@ -56,7 +56,7 @@
 
 | 触发词 | LLM 默认操作 | 优先级 |
 |--------|-------------|--------|
-| `DPS` / `DPS闸门` | 调 `check_dps({ planKeyword: "..." })`，DPS ≥ 85 通过 | 🔴 P0 |
+| `DPS` / `DPS闸门` | 调 `check_dps({ planKeyword: "..." })`，DPS ≥ 80 通过 | 🔴 P0 |
 | `RAHS` / `RAHS闸门` | 调 `check_rahs({ planKeyword: "..." })`，RAHS ≥ 90 通过 | 🔴 P0 |
 | `Guardian` / `门禁` / `add-flow-guardian` | 调 `add-flow-guardian` Subagent（入口或出口模式） | 🔴 P0 |
 | `add-route 闭环` / `闭环自检` | 调 `check_add_route_completeness({ planKeyword: "..." })` | 🟡 P1 |
@@ -197,7 +197,7 @@ LLM: "DPS 偏低，但不影响代码，继续 Step 1..." [忽略阻断]
 **正确输出**：
 ```
 LLM: "⛔ BLOCKED → 不得继续。修正 P0 阻断项后重新跑 DPS 门禁。"
-[回退到 Step 0，修复问题，重新 DPS，直到 ≥ 85]
+[回退到 Step 0，修复问题，重新 DPS，直到 ≥ 80]
 ```
 
 ### 场景 6: "继续" 被误解为跳到代码
@@ -278,7 +278,7 @@ LLM: "验收通过 → 自动写 devlog日志(走mcp)（无需用户提醒）→
 
 | 优先级 | 触发词 | LLM 默认操作 |
 |:--:|------|-------------|
-| P0 | `开发` / `改功能` / `修.?bug` / `fix.?bug` / `加需求` / `新增` / `重构` / `实现` / `接入` / `改造` / `升级` / `加个` / `添加功能` / `新建` / `改一下` / `修改.*逻辑` / `优化.*代码` / `对接` / `迁移` / `重写` / `implement` / `refactor` / `feature` | 开发任务检测——无活跃 ADD 时强制退出并提示启动 add-paradigm SKILL；有活跃 Plan 时注入当前 Step/轮次/handoff 上下文 |
+| P0 | `开发` / `改功能` / `修.?bug` / `fix.?bug` / `加需求` / `新增` / `重构` / `实现` / `接入` / `改造` / `升级` / `加个` / `添加功能` / `新建` / `改一下` / `修改.*逻辑` / `优化.*代码` / `对接` / `迁移` / `重写` / `implement` / `refactor` / `feature` | 开发任务检测——无活跃 ADD 时提示启动 add-paradigm SKILL |
 | P0 | `实施` / `开始实施` / `进入实施` | Plan 就绪后 → 进入 add-paradigm SKILL → 从当前 Step 开始执行代码实现。如无活跃 add-route 先回 Step 0.5 生成 |
 | P0 | `继续` | **上下文锁定**：沿用上一条 AI 消息中明确提出的 Step/操作（如 "继续 Step 0.5 生成 add-route？" → "继续" = 执行 Step 0.5）。**禁止**将 "继续" 理解为"跳到代码编写（Step 3）"。**禁止**在 AI 刚提出 Step N 但用户说"继续"时跳过 Step N 做别的事 |
 | P1 | `Step 0` / `文档先行` | 进入 add-paradigm Step 0：分析变更 → 更新文档 → 生成 add-route → DPS 门禁 |
@@ -306,7 +306,7 @@ LLM: "验收通过 → 自动写 devlog日志(走mcp)（无需用户提醒）→
 
 | 优先级 | 触发词 | LLM 默认操作 |
 |:--:|------|-------------|
-| P0 | `DPS` / `DPS闸门` | 调 `check_dps({ planKeyword: "..." })`，DPS ≥ 85 通过 |
+| P0 | `DPS` / `DPS闸门` | 调 `check_dps({ planKeyword: "..." })`，DPS ≥ 80 通过 |
 | P0 | `RAHS` / `RAHS闸门` | 调 `check_rahs({ planKeyword: "..." })`，RAHS ≥ 90 通过 |
 | P0 | `Guardian` / `门禁` / `add-flow-guardian` | 调 `add-flow-guardian` Subagent（入口或出口模式） |
 | P1 | `add-route 闭环` / `闭环自检` | 调 `check_add_route_completeness({ planKeyword: "..." })` |

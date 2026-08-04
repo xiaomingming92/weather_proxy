@@ -1,6 +1,6 @@
 # {需求域名}-{核心内容}-plan-v{版本号}
 
-> **Plan/Spec 边界提醒**：Plan 回答"改什么、为什么改、改哪里"——写到让 Review 能判断方向对不对、有没有遗漏维度的程度（文件路径 + Task 验收标准 + 架构维度全覆盖）。**不要**在 Plan 中写完整 TS 类型定义、WHEN-THEN 场景、精确函数签名——那是 Spec 的职责。详见 [《ADD开发工作路径与文档协同规范》§8.1.1](/home/xmm/Sites/weather_proxy/docs/knowledge/01-架构/《ADD开发工作路径与文档协同规范》.md)。
+> **Plan/Spec 边界提醒**：Plan 回答"改什么、为什么改、改哪里"——写到让 Review 能判断方向对不对、有没有遗漏维度的程度（文件路径 + Task 验收标准 + 架构维度全覆盖）。**不要**在 Plan 中写完整 TS 类型定义、WHEN-THEN 场景、精确函数签名——那是 Spec 的职责。详见 [《ADD开发工作路径与文档协同规范》§8.1.1](/home/xmm/ai/weather_proxy/docs/knowledge/01-架构/《ADD开发工作路径与文档协同规范》.md)。
 
 ## PLAN 元信息
 

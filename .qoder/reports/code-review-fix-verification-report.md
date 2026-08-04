@@ -25,7 +25,7 @@
 
 #### #1 JWT 硬编码默认密钥 → ✅ 已修复
 
-- **文件**: [src/lib/auth.ts:3-10](file:///home/xmm/Sites/weather_proxy/src/lib/auth.ts#L3-L10)
+- **文件**: [src/lib/auth.ts:3-10](file:///home/xmm/ai/weather_proxy/src/lib/auth.ts#L3-L10)
 - **原问题**:
 
   ```ts
@@ -55,7 +55,7 @@
 
 #### #2 QWeather JWT 签名是占位符 → ✅ 已修复
 
-- **文件**: [src/lib/farm-server-client.ts:68-86](file:///home/xmm/Sites/weather_proxy/src/lib/farm-server-client.ts#L68-L86)
+- **文件**: [src/lib/farm-server-client.ts:68-86](file:///home/xmm/ai/weather_proxy/src/lib/farm-server-client.ts#L68-L86)
 - **原问题**: EdDSA 签名写死为 `"PLACEHOLDER_SIGNATURE"`，生产环境会导致认证失败
 - **当前代码**: 增加占位符检测逻辑，检测到占位符时：
   1. 记录审计日志（`fsClientAudit` + `writeFsClientAudit`）
@@ -85,7 +85,7 @@
 #### #5 `extractTokenFromRequest` 重复定义 → ✅ 已修复
 
 - **原问题**: 同一函数在 `auth.ts` 和 `auth-gateway.ts` 中各定义一次
-- **当前代码** ([src/caijuehub/strategies/auth-gateway.ts:15](file:///home/xmm/Sites/weather_proxy/src/caijuehub/strategies/auth-gateway.ts#L15)):
+- **当前代码** ([src/caijuehub/strategies/auth-gateway.ts:15](file:///home/xmm/ai/weather_proxy/src/caijuehub/strategies/auth-gateway.ts#L15)):
 
   ```ts
   import { getUserFromRequest, extractTokenFromRequest, type JWTPayload } from "@/lib/auth"
@@ -119,7 +119,7 @@
 
 #### #7 `agent-gateway-dev-logger.ts` 与 `agent-gateway-audit.ts` 行为不一致 → ❌ 仍存在
 
-- **文件**: [src/lib/agent-gateway-dev-logger.ts](file:///home/xmm/Sites/weather_proxy/src/lib/agent-gateway-dev-logger.ts) / [src/lib/agent-gateway-audit.ts](file:///home/xmm/Sites/weather_proxy/src/lib/agent-gateway-audit.ts)
+- **文件**: [src/lib/agent-gateway-dev-logger.ts](file:///home/xmm/ai/weather_proxy/src/lib/agent-gateway-dev-logger.ts) / [src/lib/agent-gateway-audit.ts](file:///home/xmm/ai/weather_proxy/src/lib/agent-gateway-audit.ts)
 - **当前状态**: 两个模块仍独立存在
   - `agent-gateway-dev-logger.ts`：仅在 `NODE_ENV=development` 时输出，写文件日志
   - `agent-gateway-audit.ts`：始终输出，写 AuditLog 表（已改用 `import { writeAuditLog } from "@/lib/log"`）
@@ -130,7 +130,7 @@
 
 #### #8 `audit-log.ts` 内存存储审计日志 → ❌ 仍存在
 
-- **文件**: [src/services/audit-log.ts:33](file:///home/xmm/Sites/weather_proxy/src/services/audit-log.ts#L33)
+- **文件**: [src/services/audit-log.ts:33](file:///home/xmm/ai/weather_proxy/src/services/audit-log.ts#L33)
 - **当前代码**:
 
   ```ts
@@ -149,7 +149,7 @@
 
 #### #9 `agents/index.ts` 职责过大 → ❌ 仍存在
 
-- **文件**: [src/agents/index.ts](file:///home/xmm/Sites/weather_proxy/src/agents/index.ts)
+- **文件**: [src/agents/index.ts](file:///home/xmm/ai/weather_proxy/src/agents/index.ts)
 - **当前状态**: 500 行（原报告 468 行），仍混含 StateGraph、ToolNode 包装器、审计包装器、`runAgent`/`streamAgent` 入口、Tracer 管理、`buildPartialState`，未拆分
 - **判定**: ❌ 仍存在
 
@@ -159,7 +159,7 @@
 
 #### #10 LLM 单例竞态条件 → ❌ 仍存在
 
-- **文件**: [src/lib/llm/index.ts:225-249](file:///home/xmm/Sites/weather_proxy/src/lib/llm/index.ts#L225-L249)
+- **文件**: [src/lib/llm/index.ts:225-249](file:///home/xmm/ai/weather_proxy/src/lib/llm/index.ts#L225-L249)
 - **当前代码**:
 
   ```ts
@@ -177,7 +177,7 @@
 
 #### #11 `activeTracers` Map 潜在内存泄漏 → ✅ 已修复
 
-- **文件**: [src/agents/index.ts:239-257](file:///home/xmm/Sites/weather_proxy/src/agents/index.ts#L239-L257)
+- **文件**: [src/agents/index.ts:239-257](file:///home/xmm/ai/weather_proxy/src/agents/index.ts#L239-L257)
 - **当前代码**:
 
   ```ts
@@ -203,7 +203,7 @@
 #### #12 审计日志静默吞错 → ✅ 已修复
 
 - **原文件**: `src/lib/agent-audit-logger.ts`（已删除）
-- **新文件**: [src/lib/log/audit.ts:193-237](file:///home/xmm/Sites/weather_proxy/src/lib/log/audit.ts#L193-L237)
+- **新文件**: [src/lib/log/audit.ts:193-237](file:///home/xmm/ai/weather_proxy/src/lib/log/audit.ts#L193-L237)
 - **原问题**: catch 只做 `console.error`，DB 不可用时所有审计记录静默丢失
 - **当前代码**: 审计日志模块已重构为 `src/lib/log/` 目录结构：
 
@@ -243,7 +243,7 @@
 
 #### #13 缺少请求体运行时校验 → ❌ 仍存在
 
-- **文件**: [src/app/api/agent/chat/route.ts:20](file:///home/xmm/Sites/weather_proxy/src/app/api/agent/chat/route.ts#L20)
+- **文件**: [src/app/api/agent/chat/route.ts:20](file:///home/xmm/ai/weather_proxy/src/app/api/agent/chat/route.ts#L20)
 - **当前代码**:
 
   ```ts
@@ -257,7 +257,7 @@
 
 #### #14 Model config 使用 `require()` 动态加载 → ❌ 仍存在
 
-- **文件**: [src/lib/llm/index.ts:245-246](file:///home/xmm/Sites/weather_proxy/src/lib/llm/index.ts#L245-L246)
+- **文件**: [src/lib/llm/index.ts:245-246](file:///home/xmm/ai/weather_proxy/src/lib/llm/index.ts#L245-L246)
 - **当前代码**:
 
   ```ts
@@ -282,7 +282,7 @@
 
 #### #16 `knowledge-indexer.ts` 遗留调试日志 → ❌ 仍存在
 
-- **文件**: [src/services/knowledge-indexer.ts:568-576](file:///home/xmm/Sites/weather_proxy/src/services/knowledge-indexer.ts#L568-L576)
+- **文件**: [src/services/knowledge-indexer.ts:568-576](file:///home/xmm/ai/weather_proxy/src/services/knowledge-indexer.ts#L568-L576)
 - **当前代码**:
 
   ```ts
@@ -298,7 +298,7 @@
 
 #### #17 未完成的 TODO → ❌ 仍存在
 
-- **文件**: [src/agents/policy-update-loop.ts:149](file:///home/xmm/Sites/weather_proxy/src/agents/policy-update-loop.ts#L149)
+- **文件**: [src/agents/policy-update-loop.ts:149](file:///home/xmm/ai/weather_proxy/src/agents/policy-update-loop.ts#L149)
 - **当前代码**:
 
   ```ts
@@ -315,7 +315,7 @@
 #### #18 `AgentAuditPhase` 类型过于庞大 → ✅ 已修复
 
 - **原文件**: `src/lib/agent-audit-logger.ts`（已删除）
-- **新文件**: [src/lib/log/phase.ts:12-211](file:///home/xmm/Sites/weather_proxy/src/lib/log/phase.ts#L12-L211)
+- **新文件**: [src/lib/log/phase.ts:12-211](file:///home/xmm/ai/weather_proxy/src/lib/log/phase.ts#L12-L211)
 - **当前状态**: 已从 117 个成员的扁平联合类型，拆分为 **11 个业务域子类型**：
 
   | 子类型 | 业务域 | 成员数 |
@@ -363,7 +363,7 @@
 
 #### #20 Prisma 多文件 Schema 注释与实际路径不一致 → ✅ 已修复
 
-- **文件**: [prisma/schema.prisma:10-17](file:///home/xmm/Sites/weather_proxy/prisma/schema.prisma#L10-L17)
+- **文件**: [prisma/schema.prisma:10-17](file:///home/xmm/ai/weather_proxy/prisma/schema.prisma#L10-L17)
 - **当前代码**:
 
   ```
@@ -390,7 +390,7 @@
 
 #### #22 Chroma 端口未绑定 localhost → ✅ 已修复
 
-- **文件**: [docker-compose.yml:50](file:///home/xmm/Sites/weather_proxy/docker-compose.yml#L50)
+- **文件**: [docker-compose.yml:50](file:///home/xmm/ai/weather_proxy/docker-compose.yml#L50)
 - **原问题**: Chroma 端口映射为 `"8000:8000"`，没有绑定到 `127.0.0.1`，公网部署时暴露在外
 - **当前代码**:
 
@@ -407,7 +407,7 @@
 
 #### #23 Docker Compose 资源限制被注释 → ❌ 仍存在
 
-- **文件**: [docker-compose.yml:30-36](file:///home/xmm/Sites/weather_proxy/docker-compose.yml#L30-L36) / [docker-compose.yml:60-67](file:///home/xmm/Sites/weather_proxy/docker-compose.yml#L60-L67)
+- **文件**: [docker-compose.yml:30-36](file:///home/xmm/ai/weather_proxy/docker-compose.yml#L30-L36) / [docker-compose.yml:60-67](file:///home/xmm/ai/weather_proxy/docker-compose.yml#L60-L67)
 - **当前代码**: PostgreSQL 和 Chroma 的 `deploy.resources` 全部仍被注释：
 
   ```yaml
