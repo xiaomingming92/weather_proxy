@@ -1,7 +1,7 @@
 allowBuilds:
   '@prisma/engines': true
   esbuild: true
-  onnxruntime-node: set this to true or false
+  onnxruntime-node: true
   prisma: true
   protobufjs: true
   sharp: true

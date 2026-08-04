@@ -39,13 +39,14 @@ jobs:
             cd $HOME/Sites/weather_proxy
             git pull origin main
             export HUSKY=0
-            npm ci
+            # 项目已弃用 npm，统一 pnpm（服务器 volta 环境已装 pnpm）
+            pnpm install --frozen-lockfile
             rm -rf dist
             # Prisma 数据库迁移
-            npx prisma migrate deploy
-            npx prisma generate
-            npm run build || exit 1
-            npm prune --production
+            pnpm exec prisma migrate deploy
+            pnpm exec prisma generate
+            pnpm run build || exit 1
+            pnpm prune --production
             APP_NAME="${{ secrets.SERVER_PM2_NAME }}"
             ENTRY_FILE="dist/server.js"
 
