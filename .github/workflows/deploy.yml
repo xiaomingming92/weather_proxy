@@ -43,6 +43,8 @@ jobs:
             volta install node
             # 无 GPU 服务器：跳过 onnxruntime-node 的 CUDA 二进制下载（避免走 GitHub）
             export ONNXRUNTIME_NODE_INSTALL_CUDA=skip
+            # 数据库连接由服务器 .env.prod 提供（prisma.config.ts 已支持加载 .env.prod）
+            # ADD 库（DATABASE_URL）是开发侧 MCP server 用的，生产环境不需要
             # 项目已弃用 npm，统一 pnpm（服务器 volta 环境已装 pnpm）
             pnpm install --frozen-lockfile
             rm -rf dist

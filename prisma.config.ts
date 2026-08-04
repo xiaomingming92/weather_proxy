@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 import { existsSync } from 'fs';
+// 加载顺序与 src/config/env.ts 保持一致：.env.prod（生产）> .env.development > .env
+// 服务器部署只有 .env.prod（git 不跟踪 env 文件），prisma generate/migrate 必须能读到
 for (const f of [
+  '.env.prod',
   '.env.development.local',
   '.env.development',
   '.env.local',
